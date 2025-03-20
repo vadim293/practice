@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Accounts;
 use App\Models\Requests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class GeocodeController extends Controller
 {
@@ -13,7 +14,7 @@ class GeocodeController extends Controller
 
         $data = $request->all();
 
-        $address = isset($data['geocode']) ? $data['geocode']: null;
+        $address = $data['geocode'] ?? null;
         if(!$address) {
             return response()->json(['error'=>['message'=> 'Адрес не найден']],400);
         }
@@ -32,21 +33,34 @@ class GeocodeController extends Controller
 
         $this->createRequest($account->id,$address);
 
-        return $geocode_result;
+        return Http::get($geocode_result)->json();
+        // return $geocode_result;
     }
 
 
     private function findAccount() {
         $today = Carbon::today();
 
-        $account = Accounts::orderBy("priority", 'asc')->get()
-        ->first(function($account) use ($today) {
-            $requestcount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
+        $accounts = Accounts::orderBy("priority", 'asc')->orderBy("id", 'asc')->get();
+        $groupaccounts = $accounts->groupBy('priority');
 
-            return $requestcount < $account->requests_limit;
-        });
+        foreach ($groupaccounts as $group) {
+            $accountsMin = null;
+            $minRequest = PHP_INT_MAX;         
+            foreach ($group as $account) {
+                $requestcount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
 
-        return $account;
+                if($requestcount < $account->requests_limit && $requestcount < $minRequest) {
+                    $accountsMin = $account;
+                    $minRequest = $requestcount;
+                }                
+            }
+            if($accountsMin != null) {
+                return $accountsMin;
+            }
+        }
+            
+        return null;        
     }
 
 
@@ -55,7 +69,7 @@ class GeocodeController extends Controller
         $url = "https://geocode-maps.yandex.ru/1.x/?";        
 
         $body = [
-            'api_key' => $apiKey,
+            'apikey' => $apiKey,
         ];
 
         $body = array_merge($body, $data);
