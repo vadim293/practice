@@ -13,7 +13,7 @@ class GeocodeController extends Controller
 
         $data = $request->all();
 
-        $address = $data['geocode'];
+        $address = isset($data['geocode']) ? $data['geocode']: null;
         if(!$address) {
             return response()->json(['error'=>['message'=> 'Адрес не найден']],400);
         }
@@ -39,7 +39,7 @@ class GeocodeController extends Controller
     private function findAccount() {
         $today = Carbon::today();
 
-        $account = Accounts::whereNull("deleted_at")->orderBy("priority", 'asc')->get()
+        $account = Accounts::orderBy("priority", 'asc')->get()
         ->first(function($account) use ($today) {
             $requestcount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
 
@@ -73,7 +73,5 @@ class GeocodeController extends Controller
             'account_id' => $accountId,
             'geocode' => $geocode,
         ]);
-
-        return $create;
     }
 }
