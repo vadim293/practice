@@ -69,7 +69,7 @@ class GeocodeController extends Controller
 
 
     private function createRequest($accountId, $geocode) {
-        $create = Requests::create([
+        Requests::create([
             'account_id' => $accountId,
             'geocode' => $geocode,
         ]);
