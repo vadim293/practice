@@ -5,40 +5,33 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Accounts;
 use App\Models\Requests;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Requests\GeocodeRequest;
+use App\Exceptions\AccountLimitException;
 
 class GeocodeController extends Controller
 {
-    public function geocode(Request $request) {
+    public function geocode(GeocodeRequest $request): mixed {
 
-        $data = $request->all();
+        $validatedData = $request->validated();
 
-        $address = $data['geocode'] ?? null;
-        if(!$address) {
-            return response()->json(['error'=>['message'=> 'Адрес не найден']],400);
-        }
-
+        $address = $validatedData['geocode'];
+        
         $account = $this->findAccount();
 
         if($account === null) {
-            return response()->json(['error'=>['message'=> 'Количество запросов на текущий день превышено']],400);
+            throw new AccountLimitException();
         }
 
-        $geocode_result = $this->getGeocode($account->api_key, $data);
-
-        if(!$geocode_result) {
-            return response()->json(['error'=>['message'=> 'Не найдено']],400);
-        }
+        $geocode_result = $this->getGeocode($account->api_key, $validatedData);
 
         $this->createRequest($account->id,$address);
-
+      
         return Http::get($geocode_result)->json();
-        // return $geocode_result;
     }
 
 
-    private function findAccount() {
+    private function findAccount(): Accounts|null {
         $today = Carbon::today();
 
         $accounts = Accounts::orderBy("priority", 'asc')->orderBy("id", 'asc')->get();
@@ -64,7 +57,7 @@ class GeocodeController extends Controller
     }
 
 
-    private function getGeocode($apiKey ,$data) {
+    private function getGeocode($apiKey ,$data): string {
 
         $url = "https://geocode-maps.yandex.ru/1.x/?";        
 
@@ -82,7 +75,7 @@ class GeocodeController extends Controller
     }
 
 
-    private function createRequest($accountId, $geocode) {
+    private function createRequest($accountId, $geocode): void {
         Requests::create([
             'account_id' => $accountId,
             'geocode' => $geocode,
