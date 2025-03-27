@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Models\Requests;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Accounts extends Model
 {
@@ -17,7 +18,8 @@ class Accounts extends Model
         'priority',
     ];
 
-    public function requests(){
+    public function requests()
+    {
         return $this->hasMany(Requests::class);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Рендер всех ошибок как JSON
-        $exceptions->shouldRenderJsonWhen(static fn () => true);   
+        $exceptions->shouldRenderJsonWhen(static fn () => true);
 
     })->create();

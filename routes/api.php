@@ -1,7 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+declare(strict_types=1);
+
 use App\Http\Controllers\GeocodeController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return [
@@ -9,4 +11,4 @@ Route::get('/', function () {
     ];
 });
 
-Route::get('/geocoder',[GeocodeController::class, 'geocode']);
+Route::get('/geocoder', [GeocodeController::class, 'geocode']);

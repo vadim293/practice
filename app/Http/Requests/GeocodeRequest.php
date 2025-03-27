@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -38,7 +40,7 @@ class GeocodeRequest extends FormRequest
 
     }
 
-    public function messages(): array 
+    public function messages(): array
     {
         return [
             'geocode.required' => 'Адрес не задан',
