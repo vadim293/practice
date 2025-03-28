@@ -4,28 +4,32 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Accounts;
+use App\Models\Account;
 use App\Models\Requests;
-use Carbon\Carbon;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class GeocodeService
 {
-    public function findAccount(): ?Accounts
+    const BASE_URL = 'https://geocode-maps.yandex.ru/1.x';
+
+    public function findAccount(): ?Account
     {
-        $today = Carbon::today();
+        $today = today();
 
-        $accounts = Accounts::orderBy('priority', 'asc')->orderBy('id', 'asc')->get();
-        $groupaccounts = $accounts->groupBy('priority');
+        $accounts = Account::orderBy('priority', 'asc')->orderBy('id', 'asc')->get();
+        $groupAccounts = $accounts->groupBy('priority');
 
-        foreach ($groupaccounts as $group) {
+        foreach ($groupAccounts as $group) {
             $accountsMin = null;
             $minRequest = PHP_INT_MAX;
             foreach ($group as $account) {
-                $requestcount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
+                $requestCount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
 
-                if ($requestcount < $account->requests_limit && $requestcount < $minRequest) {
+                if ($requestCount < $account->requests_limit && $requestCount < $minRequest) {
                     $accountsMin = $account;
-                    $minRequest = $requestcount;
+                    $minRequest = $requestCount;
                 }
             }
             if ($accountsMin !== null) {
@@ -36,21 +40,25 @@ class GeocodeService
         return null;
     }
 
-    public function getGeocode($apiKey, $data): string
-    {
-
-        $url = 'https://geocode-maps.yandex.ru/1.x/?';
-        $body = array_merge(['apikey' => $apiKey], $data);
-        $bodyString = http_build_query($body);
-
-        return $url.$bodyString;
-    }
-
     public function createRequest($accountId, $geocode): void
     {
         Requests::create([
             'account_id' => $accountId,
             'geocode' => $geocode,
         ]);
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    public function request(Account $account, array $params = []): mixed
+    {
+        if (empty($params['geocode'])) {
+            throw new RuntimeException('Отсутствует geocode параметр');
+        }
+
+        $this->createRequest($account->id, $params['geocode']);
+
+        return Http::get(self::BASE_URL, array_merge(['apikey' => $account->api_key], $params))->json();
     }
 }
