@@ -18,6 +18,6 @@ class Requests extends Model
 
     public function accounts()
     {
-        return $this->belongsTo(Accounts::class);
+        return $this->belongsTo(Account::class);
     }
 }
