@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\GeocodeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Announcement\AnnouncementController;
 
 Route::get('/', function () {
     return [
@@ -12,3 +15,11 @@ Route::get('/', function () {
 });
 
 Route::get('/geocoder', [GeocodeController::class, 'geocode']);
+
+Route::get('/register', [RegisterController::class, 'register']);
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout']);
+
+
+Route::get('/adderAnnoumcement', [AnnouncementController::class, 'create']);
+

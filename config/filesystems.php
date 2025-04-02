@@ -49,6 +49,15 @@ return [
             'report' => false,
         ],
 
+        'announcement' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/announcement'),
+            'url' => env(key: 'APP_URL').'/storage/announcement',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

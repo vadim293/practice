@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('announcement_photos', function (Blueprint $table) {
             $table->id();
-            $table->string('api_key');
-            $table->integer('requests_limit');
-            $table->integer('priority')->default(0);
-            $table->softDeletes();
+            $table->string('file_name');
+            $table->bigInteger('announcement_id');
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(table: 'accounts');
+        Schema::dropIfExists('announcement_fotos');
     }
 };

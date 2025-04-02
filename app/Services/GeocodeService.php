@@ -18,14 +18,16 @@ class GeocodeService
     {
         $today = today();
 
-        $accounts = Account::orderBy('priority', 'asc')->orderBy('id', 'asc')->get();
+        $accounts = Account::orderBy('priority', 'asc')
+        ->orderBy('id', 'asc')->get();
         $groupAccounts = $accounts->groupBy('priority');
 
         foreach ($groupAccounts as $group) {
             $accountsMin = null;
             $minRequest = PHP_INT_MAX;
             foreach ($group as $account) {
-                $requestCount = Requests::where('account_id', $account->id)->whereDate('created_at', $today)->count();
+                $requestCount = Requests::where('account_id', 
+                $account->id)->whereDate('created_at', $today)->count();
 
                 if ($requestCount < $account->requests_limit && $requestCount < $minRequest) {
                     $accountsMin = $account;
