@@ -16,4 +16,12 @@ class AnnouncementController extends Controller
     public function create(AnnoumcementRequest $request){
         return $this->announcementService->createAnnouncement($request->validated());
     }
+
+    public function update(AnnoumcementRequest $request, $id){
+        return $this->announcementService->updateAnnouncement($id,$request->validated());
+    }
+
+    public function delete($id){
+        return $this->announcementService->deleteAnnouncement($id);
+    }
 }

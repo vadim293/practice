@@ -21,5 +21,7 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
 
 
-Route::get('/adderAnnoumcement', [AnnouncementController::class, 'create']);
+Route::post('/adderAnnoumcement', [AnnouncementController::class, 'create']);
+Route::patch('/updateAnnoumcement/{id}', [AnnouncementController::class, 'update']);
+Route::delete('/deleteAnnoumcement/{id}', [AnnouncementController::class, 'delete']);
 

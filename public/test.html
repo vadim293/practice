@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест загрузки фото</title>
+</head>
+<body>
+    <form action="http://localhost/adderAnnoumcement" method="POST" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="Название" required><br>
+        <textarea name="description" placeholder="Описание" required></textarea><br>
+        <input type="text" name="address" placeholder="Адрес" required><br>
+        <input type="number" name="price" placeholder="Цена" required><br>
+        <select name="type" required>
+            <option value="apartment">Квартира</option>
+            <option value="house">Дом</option>
+        </select><br>
+        <input type="number" name="rooms" placeholder="Комнаты" required><br>
+        <input type="number" name="area" placeholder="Площадь" required><br>
+        
+        <input type="file" name="file_name[]" multiple accept="image/*"><br>
+        
+        <button type="submit">Отправить</button>
+    </form>
+</body>
+</html>

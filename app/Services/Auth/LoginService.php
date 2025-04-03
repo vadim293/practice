@@ -10,19 +10,18 @@ use Illuminate\Support\Facades\Auth;
 class LoginService {
 
     public function login($login) {
-        if(Auth::attempt($login)){
-            $user = Auth::user();
-            $user->api_token = Str::random(60);
-            $user->save();
-
-            return response()->json([ 'data' =>[
-                'name'=> $user->first_name.' '.$user->last_name.' '.$user->patronymic,
-                'phone' => $user->phone,
-                'token'=> $user->api_token]
-            ],200);
+        if(!Auth::attempt($login)){
+            return response()->json(['message'=>'Неверный логин или пароль'],403);
         }
 
-        return response()->json(['message'=>'Неверный логин или пароль'],403);
+        $user = Auth::user();
+        $user->api_token = Str::random(60);
+        $user->save();
+
+        return response()->json([ 'data' =>[
+            'name'=> $user->first_name.' '.$user->last_name.' '.$user->patronymic,
+            'token'=> $user->api_token]
+        ],200);
     }
 
     public function logout($request){

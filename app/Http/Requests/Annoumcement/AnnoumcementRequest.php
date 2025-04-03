@@ -29,7 +29,8 @@ class AnnoumcementRequest extends FormRequest
             'type' => 'required|string|in:apartment,house,commercial',
             'rooms' => 'required|integer|min:1',
             'area' => 'required|integer|min:1',
-            'file_name' => 'required|string',
+            'file_name' => 'sometimes|array',
+            'file_name.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
     }
 
