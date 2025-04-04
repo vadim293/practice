@@ -32,7 +32,7 @@ class GeocodeRequest extends FormRequest
             'll' => 'nullable|string|regex:/^-?\d{1,3}\.\d+,-?\d{1,2}\.\d+$/',
             'spn' => 'nullable|string|regex:/^-?\d{1,2}\.\d+,-?\d{1,2}\.\d+$/',
             'bbox' => 'nullable|string|regex:/^-?\d{1,3}\.\d+,-?\d{1,2}\.\d+~-?\d{1,3}\.\d+,-?\d{1,2}\.\d+$/',
-            'results' => 'nullable|integer|min:10|max:50',
+            'results' => 'nullable|integer|min:1|max:50',
             'skip' => 'nullable|integer|min:0|default:0',
             'uri' => 'nullable|string',
             'format' => 'required|in:json',

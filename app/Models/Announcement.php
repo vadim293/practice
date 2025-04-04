@@ -12,6 +12,8 @@ class Announcement extends Model
         'description',
         'address',
         'price',
+        'lat', 
+        'lon',
         'type',
         'rooms',
         'area',

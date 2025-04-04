@@ -18,6 +18,8 @@ class AnnouncementService{
             'description' => $params['description'],
             'address' => $params['address'],
             'price' => $params['price'],
+            'lat' => $params['latitude'],
+            'lon' => $params['longitude'],
             'type' => $params['type'],
             'rooms' => $params['rooms'],
             'area' => $params['area'],
