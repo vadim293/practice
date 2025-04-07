@@ -104,5 +104,25 @@ class AnnouncementService{
         
     }
 
-
+    public function getAllAnnouncement() {
+        return Announcement::with('announcementPhoto')
+        ->get()
+        ->map(function($item) {
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'address' => $item->address,
+                'price' => $item->price,
+                'rooms' => $item->rooms,
+                'area' => $item->area,
+                'lat' => $item->lat,
+                'lon' => $item->lon,
+                'description' => $item->description,
+                'type' => $item->type,
+                'announcement_photo' => $item->announcementPhoto->map(function($photo) {
+                    return ['file_name' => $photo->file_name];
+                })
+            ];
+        });
+    }
 }

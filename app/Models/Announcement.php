@@ -20,7 +20,7 @@ class Announcement extends Model
         'user_id',
     ];
 
-    public function announcementFoto()
+    public function announcementPhoto()
     {
         return $this->hasMany(AnnouncementPhoto::class);
     }

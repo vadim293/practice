@@ -39,47 +39,47 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
         .suggestions-list {
-    position: absolute;
-    z-index: 1000;
-    width: 100%;
-    max-height: 300px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ddd;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    display: none;
-}
-
-.suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.suggestion-item:hover {
-    background-color: #f8f9fa;
-}
-
-.text-muted {
-    color: #6c757d;
-    font-style: italic;
-}
-
-.text-danger {
-    color: #dc3545;
-}
-
-.suggestions-container {
-    position: relative;
-}
-
-#suggestions-loader {
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-}
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+        .text-muted {
+            color: #6c757d;
+            font-style: italic;
+        }
+        .text-danger {
+            color: #dc3545;
+        }
+        .suggestions-container {
+            position: relative;
+        }
+        #suggestions-loader {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+        }
+        .invalid-feedback {
+            display: none;
+        }
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -114,6 +114,7 @@
                     </div>
                     <input type="hidden" id="latitude" name="latitude">
                     <input type="hidden" id="longitude" name="longitude">
+                    <div class="invalid-feedback" id="address-error">Пожалуйста, выберите адрес из списка предложений.</div>
                 </div>
 
                 <!-- Описание -->
@@ -146,7 +147,6 @@
                 <div class="mb-4">
                     <label for="photos" class="form-label">Фотографии</label>
                     <input type="file" id="photos" name="file_name[]" class="form-control" multiple accept="image/*">
-                    <div class="form-text">Можно загрузить несколько фотографий (максимум 10)</div>
                 </div>
 
                 <div class="d-grid gap-2">
@@ -173,6 +173,8 @@
             const $results = $('#suggestions-results');
             const $latitude = $('#latitude');
             const $longitude = $('#longitude');
+            const $addressError = $('#address-error');
+            const $form = $('#announcementForm');
         
             // Обработчик ввода
             $address.on('input', debounce(function() {
@@ -194,12 +196,11 @@
                     url: '/geocoder',
                     method: 'GET',
                     data: {
-                        geocode: query,
+                        geocode: 'Омск ' + query,
                         format: 'json',
-                        limit: config.maxResults
+                        limit: config.maxResults,
                     },
                     success: function(serverResponse) {
-                        
                         try {
                             // Преобразуем ответ сервера в массив адресов
                             const response = extractAddresses(serverResponse);
@@ -222,8 +223,7 @@
             }
 
             // Функция для извлечения адресов из различных форматов ответа
-            function extractAddresses(serverResponse) {
-                // Логируем полный ответ для отладки
+            function extractAddresses(serverResponse) {            
                 console.log('Полный ответ геокодера:', serverResponse);
                 
                 // Если ответ уже содержит массив адресов
@@ -261,7 +261,6 @@
 
             // Вспомогательная функция для извлечения координат из разных структур
             function getCoordinatesFromItem(item) {
-                
                 // Яндекс.Карты
                 if (item.Point?.pos) {
                     const [lon, lat] = item.Point.pos.split(' ');
@@ -296,18 +295,15 @@
                         .addClass('suggestion-item')
                         .text(item.address)
                         .click(function() {
-                            // Проверяем наличие координат перед выбором
                             if (!item.coordinates || !item.coordinates.lat || !item.coordinates.lon) {
                                 console.warn('Координаты не найдены для адреса:', item.address);
-                                // Можно добавить fallback-запрос для геокодирования
-                                fetchCoordinatesFallback(item.address);
+                                $addressError.text('Не удалось определить координаты для этого адреса. Пожалуйста, выберите другой.').show();
                                 return;
                             }
                             selectSuggestion(item);
                         })
                         .appendTo($results);
                     
-                    // Добавляем скрытые данные с координатами в элемент
                     $suggestionItem.data('coordinates', item.coordinates);
                 });
                 
@@ -319,11 +315,60 @@
             // Выбор подсказки
             function selectSuggestion(suggestion) {
                 $address.val(suggestion.address)
-                    .data('selected', true);
-                $latitude.val(suggestion.coordinates?.lat || '');         
-                $longitude.val(suggestion.coordinates?.lon || '');
+                    .data('selected', true)
+                    .removeClass('is-invalid');
+                
+                // Убедимся, что координаты есть и они валидны
+                if (suggestion.coordinates && 
+                    !isNaN(suggestion.coordinates.lat) && 
+                    !isNaN(suggestion.coordinates.lon)) {
+                    
+                    const lat = parseFloat(suggestion.coordinates.lat).toFixed(6);
+                    const lon = parseFloat(suggestion.coordinates.lon).toFixed(6);
+                    
+                    $latitude.val(lat);
+                    $longitude.val(lon);
+                    
+                    console.log('Координаты установлены:', {lat, lon});
+                } else {
+                    console.error('Невалидные координаты:', suggestion.coordinates);
+                    $addressError.text('Не удалось определить координаты для этого адреса. Пожалуйста, выберите другой.').show();
+                    $address.addClass('is-invalid');
+                    return null;
+                }
+                
+                $addressError.hide();
                 hideSuggestions();
             }
+
+            // Валидация формы перед отправкой - ОБНОВЛЕННАЯ ФУНКЦИЯ
+            $form.on('submit', function(e) {
+                // Проверяем, что адрес выбран из списка и есть координаты
+                const lat = parseFloat($latitude.val());
+                const lon = parseFloat($longitude.val());
+                
+                if (isNaN(lat) || isNaN(lon)) {
+                    e.preventDefault();
+                    $address.addClass('is-invalid');
+                    $addressError.text('Пожалуйста, выберите адрес из списка предложений.').show();
+                    $('html, body').animate({
+                        scrollTop: $address.offset().top - 100
+                    }, 500);
+                    
+                    console.error('Координаты не установлены или невалидны');
+                    return false;
+                }
+                
+                // Логируем данные перед отправкой
+                console.log('Данные для отправки:', {
+                    address: $address.val(),
+                    latitude: lat,
+                    longitude: lon,
+                    // другие поля формы...
+                });
+                
+                return true;
+            });
         
             // Вспомогательные функции
             function showLoader() {
@@ -376,10 +421,22 @@
                     $latitude.val('');
                     $longitude.val('');
                 }
-                
                 $(this).removeData('selected');
             });
+
+            // Валидация формы перед отправкой
+            $form.on('submit', function(e) {
+                // Проверяем, что адрес выбран из списка и есть координаты
+                if (!$latitude.val() || !$longitude.val()) {
+                    e.preventDefault();
+                    $address.addClass('is-invalid');
+                    $addressError.text('Пожалуйста, выберите адрес из списка предложений.').show();
+                    $('html, body').animate({
+                        scrollTop: $address.offset().top - 100
+                    }, 500);
+                }
+            });
         });
-        </script>
+    </script>
 </body>
 </html>

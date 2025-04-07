@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('description');
             $table->string('address');
             $table->integer('price');
-            $table->decimal('lat')->nullable();
-            $table->decimal('lon')->nullable();
+            $table->decimal('lat',9,6)->nullable();
+            $table->decimal('lon',9,6)->nullable();
             $table->string('type');
             $table->integer('rooms');
             $table->integer('area');

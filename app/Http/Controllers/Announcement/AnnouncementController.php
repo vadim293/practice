@@ -24,4 +24,8 @@ class AnnouncementController extends Controller
     public function delete($id){
         return $this->announcementService->deleteAnnouncement($id);
     }
+
+    public function getAll() {
+        return $this->announcementService->getAllAnnouncement();
+    }
 }

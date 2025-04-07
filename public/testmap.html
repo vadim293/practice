@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Объявления на карте Омска</title>
+    <meta charset="utf-8">
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ&lang=ru_RU"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .balloon-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .balloon-image {
+            max-width: 250px;
+            max-height: 150px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .balloon-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .balloon-link:hover {
+            background: #1a252f;
+        }
+        .announcements-carousel {
+            max-width: 300px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .announcement-item {
+            display: inline-block;
+            width: 280px;
+            padding: 10px;
+            vertical-align: top;
+            white-space: normal;
+        }
+        .announcement-item h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Объявления в Омске</h1>
+    <div id="map"></div>
+<script>
+    ymaps.ready(init);
+    
+    function init() {
+        const omskCenter = [54.9924, 73.3686];
+        const map = new ymaps.Map('map', {
+            center: omskCenter,
+            zoom: 12
+        });
+
+        // Кластеризатор для группировки меток
+        const clusterer = new ymaps.Clusterer({
+            preset: 'islands#invertedBlueClusterIcons',
+            clusterDisableClickZoom: true,
+            clusterOpenBalloonOnClick: true,
+            clusterBalloonContentLayout: 'cluster#balloonCarousel'
+        });
+
+        // Группируем объявления по координатам
+        fetch('/Annoumcement')
+            .then(response => response.json())
+            .then(data => {
+                const placemarks = [];
+                const announcementsByCoords = {};
+                
+                // Группируем объявления по координатам
+                data.forEach(announcement => {
+                    if (!announcement.lat || !announcement.lon) return;
+                    
+                    const coordsKey = `${announcement.lat}_${announcement.lon}`;
+                    if (!announcementsByCoords[coordsKey]) {
+                        announcementsByCoords[coordsKey] = [];
+                    }
+                    announcementsByCoords[coordsKey].push(announcement);
+                });
+                
+                // Создаем метки для каждой группы
+                Object.values(announcementsByCoords).forEach(group => {
+                    if (group.length === 1) {
+                        // Если на адресе одно объявление
+                        const announcement = group[0];
+                        placemarks.push(createPlacemark(announcement));
+                    } else {
+                        // Если несколько объявлений по одному адресу
+                        const firstAnnouncement = group[0];
+                        const placemark = createPlacemark(firstAnnouncement, group.length);
+                        
+                        // Добавляем карусель объявлений в балун
+                        placemark.properties.set({
+                            balloonContentLayout: ymaps.templateLayoutFactory.createClass(
+                                '<div class="announcements-carousel">' +
+                                '{{#each announcements}}' +
+                                '<div class="announcement-item">' +
+                                '<h3>{{title}}</h3>' +
+                                '{{#if announcement_photo.[0]}}' +
+                                '<img src="/storage/{{announcement_photo.[0].file_name}}" class="balloon-image">' +
+                                '{{else}}<div class="no-photo">Нет фото</div>{{/if}}' +
+                                '<p>Цена: {{price}} руб.</p>' +
+                                '<a href="/announcements/{{id}}" class="balloon-link">Подробнее</a>' +
+                                '</div>' +
+                                '{{/each}}' +
+                                '</div>',
+                                {
+                                    // Определяем шаблонные данные
+                                    build: function() {
+                                        this.constructor.superclass.build.call(this);
+                                        this._data = this.getData();
+                                    },
+                                    clear: function() {
+                                        this.constructor.superclass.clear.call(this);
+                                    }
+                                }
+                            ),
+                            announcements: group
+                        });
+                        
+                        placemarks.push(placemark);
+                    }
+                });
+                
+                // Добавляем метки в кластеризатор
+                clusterer.add(placemarks);
+                map.geoObjects.add(clusterer);
+                
+                // Автоматическое масштабирование
+                if (placemarks.length > 0) {
+                    map.setBounds(clusterer.getBounds(), {
+                        checkZoomRange: true,
+                        zoomMargin: 50
+                    });
+                }
+            })
+            .catch(error => console.error('Ошибка:', error));
+        
+        // Функция создания метки
+        function createPlacemark(announcement, count) {
+            const coords = [parseFloat(announcement.lat), parseFloat(announcement.lon)];
+            
+            // Иконка с количеством объявлений (если больше одного)
+            const iconContent = count > 1 ? count : undefined;
+            
+            return new ymaps.Placemark(
+                coords,
+                {
+                    hintContent: announcement.title,
+                    balloonContent: getBalloonContent(announcement),
+                    iconContent: iconContent
+                },
+                {
+                    preset: announcement.type === 'house' 
+                        ? 'islands#blueHouseIcon' 
+                        : 'islands#blueHomeIcon',
+                    iconColor: count > 1 ? '#ff0000' : undefined
+                }
+            );
+        }
+        
+        // Функция формирования контента балуна
+        function getBalloonContent(announcement) {
+            return `
+                <div class="balloon-title">${announcement.title || 'Без названия'}</div>
+                <div><strong>Адрес:</strong> ${announcement.address || 'Не указан'}</div>
+                <div><strong>Цена:</strong> ${announcement.price ? announcement.price.toLocaleString() + ' руб.' : 'Не указана'}</div>
+                ${announcement.rooms ? `<div><strong>Комнат:</strong> ${announcement.rooms}</div>` : ''}
+                ${announcement.area ? `<div><strong>Площадь:</strong> ${announcement.area} м²</div>` : ''}
+                ${announcement.announcement_photo && announcement.announcement_photo.length > 0 
+                    ? `<img src="/storage/${announcement.announcement_photo[0].file_name}" class="balloon-image">` 
+                    : '<div class="no-photo">Нет фотографии</div>'}
+                ${announcement.description ? `<p>${announcement.description}</p>` : ''}
+                <a href="/announcements/${announcement.id}" class="balloon-link">Подробнее</a>
+            `;
+        }
+    }
+</script>
+</body>
+</html>
