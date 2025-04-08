@@ -23,8 +23,7 @@ class AnnouncementService{
             'type' => $params['type'],
             'rooms' => $params['rooms'],
             'area' => $params['area'],
-            'user_id' => 76,
-            // 'user_id' => auth()->user()->id,
+            'user_id' => auth()->user()->id ?? 76,
         ]);
 
         if (!empty($params['file_name'])) {
@@ -124,5 +123,8 @@ class AnnouncementService{
                 })
             ];
         });
+    }
+    public function getAnnouncement($id) {
+        return Announcement::with('announcementPhoto')->find($id);
     }
 }

@@ -28,4 +28,12 @@ class AnnouncementController extends Controller
     public function getAll() {
         return $this->announcementService->getAllAnnouncement();
     }
+
+    public function get($id) {
+        return $this->announcementService->getAnnouncement($id);
+    }
+
+    public function deletePhoto($id) {
+        return $this->announcementService->deletePhoto($id);
+    }
 }
