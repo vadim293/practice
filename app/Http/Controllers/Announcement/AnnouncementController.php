@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Announcement;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\Announcement\AnnouncementService;
-use App\Http\Requests\Annoumcement\AnnoumcementRequest;
+use App\Http\Requests\Announcement\AnnouncementRequest;
 
 class AnnouncementController extends Controller
 {
@@ -13,11 +13,11 @@ class AnnouncementController extends Controller
         protected AnnouncementService $announcementService,
     ) {}
 
-    public function create(AnnoumcementRequest $request){
+    public function create(AnnouncementRequest $request){
         return $this->announcementService->createAnnouncement($request->validated());
     }
 
-    public function update(AnnoumcementRequest $request, $id){
+    public function update(AnnouncementRequest $request, $id){
         return $this->announcementService->updateAnnouncement($id,$request->validated());
     }
 

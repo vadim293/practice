@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Annoumcement;
+namespace App\Http\Requests\Announcement;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AnnoumcementRequest extends FormRequest
+class AnnouncementRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

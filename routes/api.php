@@ -21,9 +21,9 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
 
 
-Route::post('/adderAnnoumcement', [AnnouncementController::class, 'create']);
-Route::patch('/updateAnnoumcement/{id}', [AnnouncementController::class, 'update']);
-Route::delete('/deleteAnnoumcement/{id}', [AnnouncementController::class, 'delete']);
-Route::delete('/deleteAnnoumcementPhoto/{id}', [AnnouncementController::class, 'deletePhoto']);
-Route::get('/Annoumcement', [AnnouncementController::class, 'getAll']);
-Route::get('/Annoumcement/{id}', [AnnouncementController::class, 'get']);
+Route::post('/adderAnnouncement', [AnnouncementController::class, 'create']);
+Route::patch('/updateAnnouncement/{id}', [AnnouncementController::class, 'update']);
+Route::delete('/deleteAnnouncement/{id}', [AnnouncementController::class, 'delete']);
+Route::delete('/deleteAnnouncementPhoto/{id}', [AnnouncementController::class, 'deletePhoto']);
+Route::get('/Announcement', [AnnouncementController::class, 'getAll']);
+Route::get('/Announcement/{id}', [AnnouncementController::class, 'get']);
