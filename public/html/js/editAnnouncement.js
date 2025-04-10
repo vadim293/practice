@@ -30,6 +30,7 @@ $(document).ready(function() {
     const $type = $('#type');
     const $rooms = $('#rooms');
     const $area = $('#area');
+    const $photoInput = $('#photos');
 
     // Загрузка данных объявления
     function loadAnnouncementData() {
@@ -40,6 +41,8 @@ $(document).ready(function() {
                 return response.json();
             })
             .then(data => {
+                console.log('Загруженные данные:', data);
+                
                 // Заполняем форму
                 $title.val(data.title || '');
                 $price.val(data.price || '');
@@ -53,6 +56,7 @@ $(document).ready(function() {
                 
                 // Отображаем фотографии
                 if (data.announcement_photo && data.announcement_photo.length > 0) {
+                    $existingPhotos.empty();
                     data.announcement_photo.forEach(photo => {
                         addPhotoElement(photo.id, photo.file_name);
                     });
@@ -67,7 +71,7 @@ $(document).ready(function() {
     // Добавление элемента фото
     function addPhotoElement(photoId, photoUrl) {
         const photoHtml = `
-            <div class="position-relative existing-photo" data-photo-id="${photoId}" style="width: 150px;">
+            <div class="position-relative existing-photo mb-2" data-photo-id="${photoId}" style="width: 150px; display: inline-block; margin-right: 10px;">
                 <img src="/storage/announcement/${photoUrl}" class="img-thumbnail" style="width: 100%; height: 100px; object-fit: cover;">
                 <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 photo-delete-btn" 
                         style="padding: 0.1rem 0.3rem;">
@@ -87,17 +91,31 @@ $(document).ready(function() {
             fetch(`/deleteAnnouncementPhoto/${photoId}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Ошибка удаления');
+            .then(async response => {
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Ошибка удаления');
+                }
                 $photoElement.remove();
+                console.log('Фотография удалена');
             })
             .catch(error => {
                 console.error('Ошибка:', error);
-                alert('Не удалось удалить фотографию');
+                alert(error.message || 'Не удалось удалить фотографию');
             });
+        }
+    });
+
+    // Обработка загрузки новых фото
+    $photoInput.on('change', function() {
+        const files = this.files;
+        if (files.length > 0) {
+            // Можно добавить предпросмотр новых фото перед сохранением
+            console.log('Выбрано новых фотографий:', files.length);
         }
     });
 
@@ -113,7 +131,7 @@ $(document).ready(function() {
         fetchSuggestions(query);
     }, config.debounceDelay));
 
-    // Запрос к серверу
+    // Запрос к серверу для подсказок адреса
     function fetchSuggestions(query) {
         showLoader();
         
@@ -127,7 +145,7 @@ $(document).ready(function() {
             },
             success: function(serverResponse) {
                 try {
-                    // Преобразуем ответ сервера в массив адресов
+                    console.log('Ответ геокодера:', serverResponse);
                     const response = extractAddresses(serverResponse);
                     
                     if (response && response.length > 0) {
@@ -137,7 +155,7 @@ $(document).ready(function() {
                     }
                 } catch (error) {
                     console.error('Ошибка обработки ответа:', error);
-                    showNoResults();
+                    showError();
                 }
             },
             error: function(xhr) {
@@ -147,11 +165,8 @@ $(document).ready(function() {
         });
     }
 
-    // Функция для извлечения адресов из различных форматов ответа
+    // Функция для извлечения адресов
     function extractAddresses(serverResponse) {            
-        console.log('Полный ответ геокодера:', serverResponse);
-        
-        // Если ответ уже содержит массив адресов
         if (Array.isArray(serverResponse)) {
             return serverResponse.map(item => ({
                 address: item.address || item.name || 'Неизвестный адрес',
@@ -159,20 +174,18 @@ $(document).ready(function() {
             }));
         }
         
-        // Обработка структуры Яндекс.Карт
         if (serverResponse.response?.GeoObjectCollection?.featureMember) {
             return serverResponse.response.GeoObjectCollection.featureMember.map(feature => {
                 const geoObject = feature.GeoObject || {};
                 return {
                     address: geoObject.metaDataProperty?.GeocoderMetaData?.text || 
-                        geoObject.name || 
-                        'Адрес не указан',
+                            geoObject.name || 
+                            'Адрес не указан',
                     coordinates: getCoordinatesFromItem(geoObject)
                 };
             });
         }
         
-        // Обработка других популярных форматов
         if (serverResponse.data) {
             return serverResponse.data.map(item => ({
                 address: item.address || item.properties?.name || item.formatted_address || 'Адрес не указан',
@@ -184,15 +197,13 @@ $(document).ready(function() {
         return [];
     }
 
-    // Вспомогательная функция для извлечения координат из разных структур
+    // Вспомогательная функция для извлечения координат
     function getCoordinatesFromItem(item) {
-        // Яндекс.Карты
         if (item.Point?.pos) {
             const [lon, lat] = item.Point.pos.split(' ');
             return { lat: parseFloat(lat), lon: parseFloat(lon) };
         }
         
-        // GeoJSON (longitude, latitude)
         if (item.geometry?.coordinates?.length >= 2) {
             return { 
                 lon: parseFloat(item.geometry.coordinates[0]),
@@ -200,7 +211,6 @@ $(document).ready(function() {
             };
         }
         
-        // Прямые поля
         if (item.lat && item.lon) {
             return { lat: parseFloat(item.lat), lon: parseFloat(item.lon) };
         }
@@ -211,7 +221,7 @@ $(document).ready(function() {
         return null;
     }
 
-    // Модифицированная функция showSuggestions
+    // Показ подсказок
     function showSuggestions(addressObjects) {
         $results.empty();
         
@@ -220,11 +230,6 @@ $(document).ready(function() {
                 .addClass('suggestion-item')
                 .text(item.address)
                 .click(function() {
-                    if (!item.coordinates || !item.coordinates.lat || !item.coordinates.lon) {
-                        console.warn('Координаты не найдены для адреса:', item.address);
-                        $addressError.text('Не удалось определить координаты для этого адреса. Пожалуйста, выберите другой.').show();
-                        return;
-                    }
                     selectSuggestion(item);
                 })
                 .appendTo($results);
@@ -239,11 +244,12 @@ $(document).ready(function() {
             
     // Выбор подсказки
     function selectSuggestion(suggestion) {
+        console.log('Выбран адрес:', suggestion);
+        
         $address.val(suggestion.address)
             .data('selected', true)
             .removeClass('is-invalid');
         
-        // Убедимся, что координаты есть и они валидны
         if (suggestion.coordinates && 
             !isNaN(suggestion.coordinates.lat) && 
             !isNaN(suggestion.coordinates.lon)) {
@@ -254,7 +260,7 @@ $(document).ready(function() {
             $latitude.val(lat);
             $longitude.val(lon);
             
-            console.log('Координаты установлены:', {lat, lon});
+            console.log('Установлены координаты:', {lat, lon});
         } else {
             console.error('Невалидные координаты:', suggestion.coordinates);
             $addressError.text('Не удалось определить координаты для этого адреса. Пожалуйста, выберите другой.').show();
@@ -266,68 +272,48 @@ $(document).ready(function() {
         hideSuggestions();
     }
 
-    // Валидация формы перед отправкой
+    // Валидация формы
     function validateForm() {
         let isValid = true;
 
-        // Валидация названия
+        // Сброс предыдущих ошибок
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').hide();
+
         if (!$title.val().trim()) {
             $title.addClass('is-invalid');
             $('#title-error').text('Название объявления обязательно').show();
             isValid = false;
-        } else {
-            $title.removeClass('is-invalid');
-            $('#title-error').hide();
         }
 
-        // Валидация цены
         if (!$price.val() || isNaN($price.val())) {
             $price.addClass('is-invalid');
             $('#price-error').text('Укажите корректную цену').show();
             isValid = false;
-        } else {
-            $price.removeClass('is-invalid');
-            $('#price-error').hide();
         }
 
-        // Валидация адреса
         if (!$address.val().trim() || !$latitude.val() || !$longitude.val()) {
             $address.addClass('is-invalid');
             $addressError.text('Пожалуйста, выберите адрес из списка предложений').show();
             isValid = false;
-        } else {
-            $address.removeClass('is-invalid');
-            $addressError.hide();
         }
 
-        // Валидация типа
         if (!$type.val()) {
             $type.addClass('is-invalid');
             $('#type-error').text('Выберите тип недвижимости').show();
             isValid = false;
-        } else {
-            $type.removeClass('is-invalid');
-            $('#type-error').hide();
         }
 
-        // Валидация количества комнат
         if (!$rooms.val() || isNaN($rooms.val())) {
             $rooms.addClass('is-invalid');
             $('#rooms-error').text('Укажите количество комнат').show();
             isValid = false;
-        } else {
-            $rooms.removeClass('is-invalid');
-            $('#rooms-error').hide();
         }
 
-        // Валидация площади
         if (!$area.val() || isNaN($area.val())) {
             $area.addClass('is-invalid');
             $('#area-error').text('Укажите площадь').show();
             isValid = false;
-        } else {
-            $area.removeClass('is-invalid');
-            $('#area-error').hide();
         }
 
         return isValid;
@@ -337,19 +323,30 @@ $(document).ready(function() {
     $form.on('submit', function(e) {
         e.preventDefault();
         
-        // Валидация формы
         if (!validateForm()) {
-            alert('Пожалуйста, заполните все обязательные поля корректно');
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 500);
             return;
         }
 
-        // Подготовка данных
         const formData = new FormData(this);
-        
-        // Отправка
+        formData.append('_method', 'PATCH');
+
+        // Добавляем новые фото
+        const photoFiles = $photoInput[0].files;
+        for (let i = 0; i < photoFiles.length; i++) {
+            formData.append('photos[]', photoFiles[i]);
+        }
+
+        // Логирование данных формы
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+
         fetch(`/updateAnnouncement/2`, {
         // fetch(`/updateAnnouncement/${announcementId}`, {
-            method: 'PATCH',
+            method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
@@ -360,11 +357,22 @@ $(document).ready(function() {
             const data = await response.json();
             
             if (!response.ok) {
-                // Обработка ошибок валидации
+                // Очистка предыдущих ошибок
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').text('').hide();
+
                 if (response.status === 422 && data.errors) {
+                    // Обработка ошибок валидации
                     for (const [field, errors] of Object.entries(data.errors)) {
-                        $(`#${field}`).addClass('is-invalid');
-                        $(`#${field}-error`).text(errors[0]).show();
+                        const $field = $(`[name="${field}"]`);
+                        const $errorElement = $(`#${field}-error`);
+                        
+                        $field.addClass('is-invalid');
+                        if ($errorElement.length) {
+                            $errorElement.text(errors[0]).show();
+                        } else {
+                            $field.after(`<div class="invalid-feedback">${errors[0]}</div>`);
+                        }
                     }
                     throw new Error('Проверьте правильность данных');
                 }
@@ -374,12 +382,13 @@ $(document).ready(function() {
             return data;
         })
         .then(data => {
+            console.log('Успешный ответ:', data);
             alert('Изменения сохранены успешно!');
             window.location.href = `/Announcement/${announcementId}`;
         })
         .catch(error => {
             console.error('Ошибка:', error);
-            alert(error.message);
+            alert(error.message || 'Произошла ошибка при сохранении');
         });
     });
 
@@ -423,7 +432,8 @@ $(document).ready(function() {
 
     // Закрытие подсказок при клике вне поля
     $(document).click(function(e) {
-        if (!$(e.target).closest('.suggestions-container').length) {
+        if (!$(e.target).closest('.suggestions-container').length && 
+            !$(e.target).is($address)) {
             hideSuggestions();
         }
     });

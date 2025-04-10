@@ -48,7 +48,7 @@ class AnnouncementService{
         }
     }
 
-    public function updateAnnouncement($id, $params){
+    public function updateAnnouncement($id, $params, $photos){
         $announcement = Announcement::findOrFail($id);
 
         if(!$announcement){
@@ -57,26 +57,12 @@ class AnnouncementService{
 
         $announcement->update($params);
 
-
-        if ($params->hasFile('file_name')) {
-            $this->processFiles($params->file('file_name'), $announcement->id);
+        if ($photos) {
+            $this->getPhoto($photos, $announcement->id);
         }
+
     }
 
-    public function processFiles($files, $announcementId)
-    {
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $fileName = uniqid() . '.' . $extension;
-            
-            $path = $file->storeAs('', $fileName, 'announcement');
-            
-            AnnouncementPhoto::create([
-                'file_name' => $path,
-                'announcement_id' => $announcementId,
-            ]);
-        }
-    }
 
     public function deleteAnnouncement($id)
     {
