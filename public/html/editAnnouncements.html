@@ -40,8 +40,8 @@
                         </div>
                         <div id="suggestions-results"></div>
                     </div>
-                    <input type="hidden" id="latitude" name="latitude">
-                    <input type="hidden" id="longitude" name="longitude">
+                    <input type="text" id="latitude" name="latitude">
+                    <input type="text" id="longitude" name="longitude">
                     <div class="invalid-feedback" id="address-error">Пожалуйста, выберите адрес из списка</div>
                 </div>
 
@@ -84,7 +84,7 @@
                 <!-- Загрузка новых фотографий -->
                 <div class="mb-4">
                     <label for="photos" class="form-label">Добавить новые фотографии</label>
-                    <input type="file" id="photos" name="photos[]" class="form-control" multiple accept="image/*">
+                    <input type="file" id="photos" name="file_name[]" class="form-control" multiple accept="image/*">
                 </div>
 
                 <div class="d-grid gap-2">

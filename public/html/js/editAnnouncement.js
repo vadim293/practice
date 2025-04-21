@@ -34,8 +34,8 @@ $(document).ready(function() {
 
     // Загрузка данных объявления
     function loadAnnouncementData() {
-        fetch(`/Announcement/2`)
         // fetch(`/Announcement/${announcementId}`)
+        fetch(`/Announcement/2`)
             .then(response => {
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
@@ -82,7 +82,6 @@ $(document).ready(function() {
         $existingPhotos.append(photoHtml);
     }
 
-    // Удаление фото
     $(document).on('click', '.photo-delete-btn', function() {
         const $photoElement = $(this).closest('.existing-photo');
         const photoId = $photoElement.data('photo-id');
@@ -114,7 +113,6 @@ $(document).ready(function() {
     $photoInput.on('change', function() {
         const files = this.files;
         if (files.length > 0) {
-            // Можно добавить предпросмотр новых фото перед сохранением
             console.log('Выбрано новых фотографий:', files.length);
         }
     });
@@ -329,66 +327,67 @@ $(document).ready(function() {
             }, 500);
             return;
         }
-
+    
         const formData = new FormData(this);
         formData.append('_method', 'PATCH');
+        
+        // Добавляем координаты
+        formData.append('latitude', $latitude.val());
+        formData.append('longitude', $longitude.val());
 
-        // Добавляем новые фото
-        const photoFiles = $photoInput[0].files;
-        for (let i = 0; i < photoFiles.length; i++) {
-            formData.append('photos[]', photoFiles[i]);
-        }
-
-        // Логирование данных формы
+        // Проверка содержимого FormData
         for (let [key, value] of formData.entries()) {
-            console.log(key, value);
+            console.log(key, value instanceof File ? value.name : value);
         }
-
+    
         fetch(`/updateAnnouncement/2`, {
         // fetch(`/updateAnnouncement/${announcementId}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
+                // Не устанавливайте Content-Type - браузер сам установит с boundary
             },
             body: formData
         })
         .then(async response => {
-            const data = await response.json();
-            
-            if (!response.ok) {
-                // Очистка предыдущих ошибок
-                $('.is-invalid').removeClass('is-invalid');
-                $('.invalid-feedback').text('').hide();
-
-                if (response.status === 422 && data.errors) {
-                    // Обработка ошибок валидации
-                    for (const [field, errors] of Object.entries(data.errors)) {
-                        const $field = $(`[name="${field}"]`);
-                        const $errorElement = $(`#${field}-error`);
-                        
-                        $field.addClass('is-invalid');
-                        if ($errorElement.length) {
-                            $errorElement.text(errors[0]).show();
-                        } else {
-                            $field.after(`<div class="invalid-feedback">${errors[0]}</div>`);
-                        }
-                    }
-                    throw new Error('Проверьте правильность данных');
+            const text = await response.text();
+            try {
+                const data = JSON.parse(text);
+                if (!response.ok) {
+                    return Promise.reject(data);
                 }
-                throw new Error(data.message || 'Ошибка сохранения');
+                return data;
+            } catch (e) {
+                throw new Error(text || 'Неверный формат ответа');
             }
-            
-            return data;
         })
         .then(data => {
             console.log('Успешный ответ:', data);
             alert('Изменения сохранены успешно!');
-            window.location.href = `/Announcement/${announcementId}`;
+            window.location.href = `/Announcement/2`;
         })
         .catch(error => {
             console.error('Ошибка:', error);
-            alert(error.message || 'Произошла ошибка при сохранении');
+            
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').text('').hide();
+    
+            if (error.errors) {
+                for (const [field, errors] of Object.entries(error.errors)) {
+                    const $field = $(`[name="${field}"]`);
+                    const $errorElement = $(`#${field}-error`);
+                    
+                    $field.addClass('is-invalid');
+                    if ($errorElement.length) {
+                        $errorElement.text(errors[0]).show();
+                    } else {
+                        $field.after(`<div class="invalid-feedback">${errors[0]}</div>`);
+                    }
+                }
+                alert('Проверьте правильность данных');
+            } else {
+                alert(error.message || 'Произошла ошибка при сохранении');
+            }
         });
     });
 

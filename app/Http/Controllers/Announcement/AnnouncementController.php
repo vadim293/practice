@@ -18,8 +18,7 @@ class AnnouncementController extends Controller
     }
 
     public function update(AnnouncementRequest $request, $id){
-        $photos = $request->hasFile('file_name');
-        return $this->announcementService->updateAnnouncement($id,$request->validated(), $photos);
+        return $this->announcementService->updateAnnouncement($id,$request->validated());
     }
 
     public function delete($id){

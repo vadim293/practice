@@ -48,19 +48,32 @@ class AnnouncementService{
         }
     }
 
-    public function updateAnnouncement($id, $params, $photos){
+    public function updateAnnouncement($id, $params)
+    {
         $announcement = Announcement::findOrFail($id);
-
-        if(!$announcement){
-            return response()->json(['message'=>'объявление не найтено'],404);
+    
+        if(!$announcement) {
+            return response()->json(['message' => 'Объявление не найдено'], 404);
         }
-
-        $announcement->update($params);
-
-        if ($photos) {
-            $this->getPhoto($photos, $announcement->id);
+        $announcement->update([
+            'title' => $params['title'],
+            'description' => $params['description'],
+            'address' => $params['address'],
+            'price' => $params['price'],
+            'lat' => $params['latitude'],
+            'lon' => $params['longitude'],
+            'type' => $params['type'],
+            'rooms' => $params['rooms'],
+            'area' => $params['area'],
+            'user_id' => auth()->user()->id ?? 76, 
+        ]);
+    
+        if (!empty($params['file_name'])) {
+            $this->getPhoto($params['file_name'], $announcement->id);
         }
-
+        
+        // Добавьте возврат успешного ответа
+        return response()->json(['message' => 'Объявление успешно обновлено','data' => $announcement]);
     }
 
 
@@ -71,22 +84,47 @@ class AnnouncementService{
         if(!$announcement){
             return response()->json(['message'=>'объявление не найтено'],404);
         }
-        $this->deletePhoto($announcement->id); 
+        
+        $photos = AnnouncementPhoto::where('announcement_id', $announcement->id)->get();
+
+        // Удаляем каждую фотографию
+        foreach ($photos as $photo) {
+            $this->deletePhoto($photo->id);
+        }
+    
+        // Удаляем само объявление
         $announcement->delete();
 
     }
 
     public function deletePhoto($photoId)
     {
-        $photos = AnnouncementPhoto::where('announcement_id',$photoId)->get();
-
-        foreach($photos as $photo){
- 
-            Storage::disk('announcement')->delete($photo->file_name);
-
-            $photo->delete();
+        // Находим конкретное фото по его ID
+        $photo = AnnouncementPhoto::find($photoId);
+    
+        if (!$photo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Фотография не найдена'
+            ], 404);
         }
-        
+    
+        try {
+            // Удаляем файл из хранилища
+            Storage::disk('announcement')->delete($photo->file_name);
+            
+            // Удаляем запись из базы данных
+            $photo->delete();
+    
+            return response()->json([
+                'message' => 'Фотография успешно удалена'
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Ошибка при удалении фотографии: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getAllAnnouncement() {
