@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\Storage;
 class AnnouncementService{
 
     public function createAnnouncement($params){
+
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Требуется вход в систему'], 401);
+        }
+
+        $userId = Auth::user()->id;
+
         $announcement = Announcement::create([
             'title' => $params['title'],
             'description' => $params['description'],
@@ -23,7 +30,7 @@ class AnnouncementService{
             'type' => $params['type'],
             'rooms' => $params['rooms'],
             'area' => $params['area'],
-            'user_id' => auth()->user()->id ?? 76,
+            'user_id' => $userId,
         ]);
 
         if (!empty($params['file_name'])) {
@@ -65,7 +72,6 @@ class AnnouncementService{
             'type' => $params['type'],
             'rooms' => $params['rooms'],
             'area' => $params['area'],
-            'user_id' => auth()->user()->id ?? 76, 
         ]);
     
         if (!empty($params['file_name'])) {

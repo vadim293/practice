@@ -58,6 +58,15 @@ return [
             'report' => false,
         ],
 
+        'avotark' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/avotark'),
+            'url' => env(key: 'APP_URL').'/storage/avotark',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

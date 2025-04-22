@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="form-container">
+            <h1 class="text-center mb-4">Регистрация</h1>
+            
+            <form id="registerForm" action="/register" method="POST">
+                <!-- Личные данные -->
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-3">
+                        <label for="first_name" class="form-label">Имя*</label>
+                        <input type="text" id="first_name" name="first_name" class="form-control" required>
+                        <div class="invalid-feedback">Пожалуйста, укажите имя</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="last_name" class="form-label">Фамилия*</label>
+                        <input type="text" id="last_name" name="last_name" class="form-control" required>
+                        <div class="invalid-feedback">Пожалуйста, укажите фамилию</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="patronymic" class="form-label">Отчество</label>
+                        <input type="text" id="patronymic" name="patronymic" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Контактные данные -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">Телефон*</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" required placeholder="+7 (XXX) XXX-XX-XX">
+                        <div class="invalid-feedback">Пожалуйста, укажите корректный телефон</div>
+                    </div>
+                </div>
+
+                <!-- Пароль -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">Пароль*</label>
+                        <input type="password" id="password" name="password" class="form-control" required minlength="8">
+                        <div class="invalid-feedback">Пароль должен содержать минимум 8 символов</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="password_confirmation" class="form-label">Подтвердите пароль*</label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" required>
+                        <div class="invalid-feedback">Пароли не совпадают</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
+                    <a href="/" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <p>Уже есть аккаунт? <a href="Login.html">Войти</a></p>                   
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+    <script src="js/registerScript.js"></script>
+</body>
+</html>

@@ -1,11 +1,12 @@
 $(document).ready(function() {
     // Получаем ID объявления из URL
-    // const announcementId = window.location.pathname.split('/').pop();
-    // if (!announcementId || isNaN(announcementId)) {
-    //     alert('Неверный ID объявления');
-    //     window.location.href = '/';
-    //     return;
-    // }
+    const $token = localStorage.getItem('authToken');
+    console.log($token);
+    
+    if (!$token) {
+      window.location.href = '/login';
+      return;
+    }
 
     // Конфигурация
     const config = {

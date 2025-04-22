@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\Auth\LoginController;
@@ -16,10 +17,9 @@ Route::get('/', function () {
 
 Route::get('/geocoder', [GeocodeController::class, 'geocode']);
 
-Route::get('/register', [RegisterController::class, 'register']);
+Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout']);
-
+Route::get('/logout', [LoginController::class, 'logout']);
 
 Route::post('/adderAnnouncement', [AnnouncementController::class, 'create']);
 Route::patch('/updateAnnouncement/{id}', [AnnouncementController::class, 'update']);

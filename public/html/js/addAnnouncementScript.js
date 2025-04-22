@@ -1,4 +1,13 @@
 $(document).ready(function() {
+
+    const token = localStorage.getItem('authToken');
+    console.log(token);
+    
+    if (!token) {
+      window.location.href = 'Login.html';
+      return;
+    }
+    
     // Конфигурация
     const config = {
         minQueryLength: 2,
@@ -15,6 +24,12 @@ $(document).ready(function() {
     const $longitude = $('#longitude');
     const $addressError = $('#address-error');
     const $form = $('#announcementForm');
+
+    $.ajaxSetup({
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    });
 
     // Обработчик ввода
     $address.on('input', debounce(function() {
