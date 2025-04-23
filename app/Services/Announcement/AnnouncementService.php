@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Storage;
 
 class AnnouncementService{
 
-    public function createAnnouncement($params){
+    public function createAnnouncement($params, $apiToken){
 
-        if (!auth()->check()) {
+        $user = User::where('api_token', $apiToken)->first();
+    
+        if (!$user) {
             return response()->json(['error' => 'Требуется вход в систему'], 401);
         }
-
-        $userId = Auth::user()->id;
 
         $announcement = Announcement::create([
             'title' => $params['title'],
@@ -30,7 +30,7 @@ class AnnouncementService{
             'type' => $params['type'],
             'rooms' => $params['rooms'],
             'area' => $params['area'],
-            'user_id' => $userId,
+            'user_id' => $user->id,
         ]);
 
         if (!empty($params['file_name'])) {
@@ -157,4 +157,13 @@ class AnnouncementService{
     public function getAnnouncement($id) {
         return Announcement::with('announcementPhoto')->find($id);
     }
+
+
+    public function search($address)
+    {
+        $announcements = Announcement::with('announcementPhoto')->where('address', 'LIKE', '%'.$address.'%')->get();
+        
+        return response()->json($announcements);
+    }
+
 }

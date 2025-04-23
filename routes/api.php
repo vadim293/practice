@@ -27,3 +27,4 @@ Route::delete('/deleteAnnouncement/{id}', [AnnouncementController::class, 'delet
 Route::delete('/deleteAnnouncementPhoto/{id}', [AnnouncementController::class, 'deletePhoto']);
 Route::get('/Announcement', [AnnouncementController::class, 'getAll']);
 Route::get('/Announcement/{id}', [AnnouncementController::class, 'get']);
+Route::get('/search/{address}', [AnnouncementController::class, 'search']);

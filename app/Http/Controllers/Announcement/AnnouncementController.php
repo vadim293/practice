@@ -14,7 +14,8 @@ class AnnouncementController extends Controller
     ) {}
 
     public function create(AnnouncementRequest $request){
-        return $this->announcementService->createAnnouncement($request->validated());
+        $apiToken = $request->bearerToken();
+        return $this->announcementService->createAnnouncement($request->validated(), $apiToken);
     }
 
     public function update(AnnouncementRequest $request, $id){
@@ -36,4 +37,9 @@ class AnnouncementController extends Controller
     public function deletePhoto($id) {
         return $this->announcementService->deletePhoto($id);
     }
+
+    public function search($address) {
+        return $this->announcementService->search($address);
+    }
+
 }

@@ -31,7 +31,7 @@ $(document).ready(function() {
             success: function(response) {
                 // Сохраняем токен и перенаправляем
                 localStorage.setItem('authToken', response.data.token);
-                window.location.href = 'addAnnouncements.html';
+                window.location.href = 'index.html';
             },
             error: function(xhr) {
                 if (xhr.status === 403) {
