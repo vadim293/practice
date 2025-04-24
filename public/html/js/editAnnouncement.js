@@ -14,6 +14,13 @@ $(document).ready(function() {
         debounceDelay: 300,
         maxResults: 5
     };
+    const currentUrl = window.location.href;
+
+    // Создаем объект URL
+    const url = new URL(currentUrl);
+
+    // Используем URLSearchParams для извлечения параметра 'id'
+    const announcementId = url.searchParams.get('id');
 
     // Элементы
     const $form = $('#editAnnouncementForm');
@@ -35,8 +42,8 @@ $(document).ready(function() {
 
     // Загрузка данных объявления
     function loadAnnouncementData() {
-        // fetch(`/Announcement/${announcementId}`)
-        fetch(`/Announcement/2`)
+        fetch(`/Announcement/${announcementId}`)
+        // fetch(`/Announcement/2`)
             .then(response => {
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
@@ -341,8 +348,8 @@ $(document).ready(function() {
             console.log(key, value instanceof File ? value.name : value);
         }
     
-        fetch(`/updateAnnouncement/2`, {
-        // fetch(`/updateAnnouncement/${announcementId}`, {
+        // fetch(`/updateAnnouncement/2`, {
+        fetch(`/updateAnnouncement/${announcementId}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),

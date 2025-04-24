@@ -159,11 +159,37 @@ class AnnouncementService{
     }
 
 
-    public function search($address)
+    public function search($params)
     {
-        $announcements = Announcement::with('announcementPhoto')->where('address', 'LIKE', '%'.$address.'%')->get();
+
+        $address = $params->input('address');
+        $type = $params->input('type');
+        $maxPrice = $params->input('price');
+    
+        // Начинаем построение запроса
+        $query = Announcement::with('announcementPhoto');
+    
+        // Фильтр по адресу (с добавлением запятой перед номером дома)
+        if (!empty($address)) {
+            $searchAddress = preg_replace('/(.*)\s(\d+)$/', '$1, $2', $address);
+            $query->where('address', 'LIKE', '%' . $searchAddress . '%');
+        }
         
+        // Фильтр по типу недвижимости
+        if (!empty($type)) {
+            $query->where('type', $type);
+        }
+    
+        // Фильтр по цене (меньше или равно указанной)
+        if (!empty($maxPrice)) {
+            $query->where('price', '<=', $maxPrice);
+        }
+    
+        // Получаем результаты
+        $announcements = $query->get();
+    
         return response()->json($announcements);
+
     }
 
 }

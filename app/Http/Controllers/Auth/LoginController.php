@@ -17,7 +17,7 @@ class LoginController extends Controller
         return $this->loginService->login($request->validated());
     }
 
-    public function logout(LoginRequest $request){
+    public function logout(Request $request){
         return $this->loginService->logout($request);
     }
 }

@@ -38,8 +38,8 @@ class AnnouncementController extends Controller
         return $this->announcementService->deletePhoto($id);
     }
 
-    public function search($address) {
-        return $this->announcementService->search($address);
+    public function search(Request $request) {
+        return $this->announcementService->search($request);
     }
 
 }
