@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('patronymic');
             $table->string('phone')->unique();
             $table->string('password');
-            $table->string('avotarka')->nullable();
+            $table->string('user_foto')->nullable();
             $table->string('api_token')->nullable();
             $table->timestamps();
         });

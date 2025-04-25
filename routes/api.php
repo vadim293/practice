@@ -27,8 +27,13 @@ Route::delete('/deleteAnnouncement/{id}', [AnnouncementController::class, 'delet
 Route::delete('/deleteAnnouncementPhoto/{id}', [AnnouncementController::class, 'deletePhoto']);
 Route::get('/Announcement', [AnnouncementController::class, 'getAll']);
 Route::get('/Announcement/{id}', [AnnouncementController::class, 'get']);
+Route::get('/user/Announcement/{id}', [AnnouncementController::class, 'getUserAnnouncement']);
 Route::get('/search', [AnnouncementController::class, 'search']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return response()->json(['user_id' => $request->user()->id]);
+
+Route::patch('/userFoto', [AnnouncementController::class, 'userFoto']);
+Route::delete('/userFoto', [AnnouncementController::class, 'deleteUserFoto']);
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
 });

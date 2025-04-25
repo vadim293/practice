@@ -5,7 +5,9 @@ footer {
     color: white;
     padding: 50px 0;
 }
-
+.display-none{
+    display: none;
+}
 /* index */
 
 .hero-section {
@@ -59,6 +61,28 @@ footer {
     display: none;
 }
 
+
+/* profile */
+.user-foto {
+    width: 150px;
+    height: 150px;
+}
+
+.profile-avatar {
+    display: none;
+    width: 100%; 
+    height: 100%;
+    object-fit: cover;
+}
+
+#avatar-container img{
+    position: relative;
+    z-index: 1;
+  }
+  
+#avatar-container button {
+  z-index: 10;
+}
 /* maps */
 
 .container-map {
@@ -249,7 +273,7 @@ footer {
 
 /* Media */
 @media (min-width: 768px) {
-    .container {
+    .map-container {
         flex-direction: row;
     }
     #sidebar {

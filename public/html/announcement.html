@@ -12,26 +12,38 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
             <div class="container">
-                <a class="navbar-brand fw-bold" href="/">RentHouse</a>
+                <a class="navbar-brand fw-bold" href="index.html">RentHouse</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="/">Главная</a>
+                            <a class="nav-link active" href="index.html">Главная</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="indexSearch.html">Каталог</a>
+                            <a class="nav-link" href="indexSearch.html">Объявления</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html#footer">О нас</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="maps.html">Карта</a>
                         </li>
                     </ul>
                     <div class="d-flex">
-                        <a href="Login.html" class="btn btn-outline-light me-2">Вход</a>
-                        <a href="Register.html" class="btn btn-primary">Регистрация</a>
+                        <div id="auth-buttons">
+                            <a href="Login.html" class="btn btn-outline-light me-2">Вход</a>
+                            <a href="Register.html" class="btn btn-primary">Регистрация</a>
+                        </div>
+                        <div id="user-menu" style="display: none;">
+                            <a href="profile.html" class="btn btn-outline-light me-2">Профиль</a>
+                            <button id="logout-btn" class="btn btn-danger">Выход</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </nav>        
     </header>
 
     <main class="container my-5">

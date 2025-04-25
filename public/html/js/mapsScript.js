@@ -1,6 +1,51 @@
-ymaps.ready(init);
+// Функция проверки статуса авторизации
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        $('#auth-buttons').hide();
+        $('#user-menu').show();
+    } else {
+        $('#auth-buttons').show();
+        $('#user-menu').hide();
+    }
+}
+
+// Функция для выхода пользователя
+async function logoutUser() {
+    const token = localStorage.getItem('authToken');
     
-function init() {
+    try {
+        const response = await fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.status === 204) {
+            localStorage.removeItem('authToken');
+            checkAuthStatus();
+            window.location.href = 'index.html';
+        } else {
+            console.error('Ошибка при выходе:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Ошибка при выходе:', error);
+    }
+}
+
+// Обработчик клика для кнопки выхода
+$(document).on('click', '#logout-btn', function(e) {
+    e.preventDefault();
+    logoutUser();
+});
+
+// Инициализация карты
+ymaps.ready(initMap);
+
+function initMap() {
     const omskCenter = [54.9924, 73.3686];
     const map = new ymaps.Map('map', {
         center: omskCenter,
@@ -123,7 +168,7 @@ function init() {
                     ? `<img src="/storage/announcement/${announcement.announcement_photo[0].file_name}" class="announcement-image">` 
                     : '<div class="no-photo">Нет фотографии</div>'}
                 ${announcement.description ? `<p>${announcement.description}</p>` : ''}
-                <a href="/Announcement/${announcement.id}" class="balloon-link">Подробнее</a>
+                <a href="announcement.html?id=${announcement.id}" class="balloon-link">Подробнее</a>
             `;
             
             card.innerHTML = content;
@@ -137,3 +182,8 @@ function init() {
         sidebar.classList.toggle('active');
     });
 }
+
+// Проверяем статус авторизации при загрузке страницы
+$(document).ready(function() {
+    checkAuthStatus();
+});

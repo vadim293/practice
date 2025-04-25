@@ -310,7 +310,7 @@ $(document).ready(function() {
         .then(data => {
             console.log('Успешный ответ:', data);
             alert('Объявление успешно создано!');
-            window.location.href = `/index.html`;
+            window.location.href = `profile.html`;
         })
         .catch(error => {
             console.error('Ошибка:', error);

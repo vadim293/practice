@@ -58,10 +58,10 @@ return [
             'report' => false,
         ],
 
-        'avotark' => [
+        'userFoto' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/avotark'),
-            'url' => env(key: 'APP_URL').'/storage/avotark',
+            'root' => storage_path('app/public/userFoto'),
+            'url' => env(key: 'APP_URL').'/storage/userFoto',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

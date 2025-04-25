@@ -4,19 +4,59 @@
     <title>Объявления на карте Омска</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="maps">
-    <div class="header">
-        <h1>Объявления в Омске</h1>
-    </div>
-    <div class="container container-map">
-        <div id="sidebar"></div>
-        <div id="map-container">
-            <div id="map"></div>
-            <div class="sidebar-toggle" id="sidebarToggle">☰ Список</div>
-        </div>
-    </div>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="index.html">RentHouse</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="index.html">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="indexSearch.html">Объявления</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html#footer">О нас</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="maps.html">Карта</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        <div id="auth-buttons">
+                            <a href="Login.html" class="btn btn-outline-light me-2">Вход</a>
+                            <a href="Register.html" class="btn btn-primary">Регистрация</a>
+                        </div>
+                        <div id="user-menu" style="display: none;">
+                            <a href="profile.html" class="btn btn-outline-light me-2">Профиль</a>
+                            <button id="logout-btn" class="btn btn-danger">Выход</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>        
+    </header>
+    <main>
+        <section>
+            <div class="map-container container-map">
+                <div id="sidebar"></div>
+                <div id="map-container">
+                    <div id="map"></div>
+                    <div class="sidebar-toggle" id="sidebarToggle">☰ Список</div>
+                </div>
+            </div>            
+        </section>
+    </main>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=c251791d-45c8-4706-9523-f83e356fdac4&lang=ru_RU"></script>
     <script src="js/mapsScript.js"></script>
 </body>

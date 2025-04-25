@@ -158,6 +158,28 @@ class AnnouncementService{
         return Announcement::with('announcementPhoto')->find($id);
     }
 
+    public function getUserAnnouncements($userId) {
+        return Announcement::with('announcementPhoto')
+            ->where('user_id', $userId) 
+            ->get()
+            ->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'address' => $item->address,
+                    'price' => $item->price,
+                    'rooms' => $item->rooms,
+                    'area' => $item->area,
+                    'lat' => $item->lat,
+                    'lon' => $item->lon,
+                    'description' => $item->description,
+                    'type' => $item->type,
+                    'announcement_photo' => $item->announcementPhoto->map(function($photo) {
+                        return ['file_name' => $photo->file_name];
+                    })
+                ];
+            });
+    }
 
     public function search($params)
     {
@@ -192,4 +214,37 @@ class AnnouncementService{
 
     }
 
+
+    public function userFoto($user, $userFotoFile)    {
+
+        $this->deleteUserFoto($user);
+
+        $extension = $userFotoFile->getClientOriginalExtension();
+        $fileName = uniqid() . '.' . $extension;
+        
+        // Сохраняем файл
+        $userFotoFile->storeAs(
+            '', // корень диска уже указан в конфиге
+            $fileName,
+            'userFoto' // используем наш диск
+        );
+        
+        // Обновляем запись в базе данных
+        $user->user_foto = $fileName;
+        $user->save();
+        
+        return Storage::disk('userFoto')->url($fileName);
+    }
+    
+    public function deleteUserFoto($user)
+    {
+        if ($user->user_foto) {
+            Storage::disk('userFoto')->delete($user->user_foto);
+            $user->user_foto = null;
+            $user->save();
+            return true;
+        }
+        
+        return false;
+    }
 }

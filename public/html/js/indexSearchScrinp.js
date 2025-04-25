@@ -1,4 +1,48 @@
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    ;
+    if (token) {
+        $('#auth-buttons').hide();
+        $('#user-menu').show();
+    } else {
+        $('#auth-buttons').show();
+        $('#user-menu').hide();
+    }
+}
+
+// Функция для выхода пользователя
+async function logoutUser() {
+    const token = localStorage.getItem('authToken');
+    
+    try {
+        const response = await fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.status === 204) {
+            localStorage.removeItem('authToken');
+            checkAuthStatus();
+            window.location.href = 'index.html';
+        } else {
+            console.error('Ошибка при выходе:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Ошибка при выходе:', error);
+    }
+}
+
+$(document).on('click', '#logout-btn', function(e) {
+    e.preventDefault();
+    logoutUser();
+});
+
 $(document).ready(function() {
+    checkAuthStatus();
     // Функция для получения параметров из URL
     function getUrlParams() {
         const params = {};

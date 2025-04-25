@@ -34,12 +34,24 @@ class AnnouncementController extends Controller
         return $this->announcementService->getAnnouncement($id);
     }
 
+    public function getUserAnnouncement($id) {
+        return $this->announcementService->getUserAnnouncements($id);
+    }
+
     public function deletePhoto($id) {
         return $this->announcementService->deletePhoto($id);
     }
 
     public function search(Request $request) {
         return $this->announcementService->search($request);
+    }
+
+    public function userFoto(Request $request) {
+        return $this->announcementService->userFoto($request->user(),$request->file('userFoto'));
+    }
+
+    public function deleteUserFoto(Request $request) {
+        return $this->announcementService->deleteUserFoto($request->user());
     }
 
 }

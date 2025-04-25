@@ -1,12 +1,12 @@
 $(document).ready(function() {
     // Получаем ID объявления из URL
-    const $token = localStorage.getItem('authToken');
-    console.log($token);
+    // const $token = localStorage.getItem('authToken');
+    // console.log($token);
     
-    if (!$token) {
-      window.location.href = '/login';
-      return;
-    }
+    // if (!$token) {
+    //   window.location.href = '/login';
+    //   return;
+    // }
 
     // Конфигурация
     const config = {
@@ -372,7 +372,7 @@ $(document).ready(function() {
         .then(data => {
             console.log('Успешный ответ:', data);
             alert('Изменения сохранены успешно!');
-            window.location.href = `/Announcement/2`;
+            window.location.href = `profile.html`;
         })
         .catch(error => {
             console.error('Ошибка:', error);
