@@ -61,7 +61,7 @@ $(document).ready(function() {
             headers: {
                 'Authorization': `Bearer ${token}`
             },
-            success: function(user) {
+            success: function(user) {            
                 currentUserId = user.id; 
                 updateUserProfile(user);
                 initAvatarUpload();
@@ -76,6 +76,7 @@ $(document).ready(function() {
     }
     
     function updateUserProfile(user) {
+  
         let fullName = '';
         if (user.last_name) fullName += user.last_name;
         if (user.first_name) fullName += ' ' + user.first_name;
@@ -90,7 +91,7 @@ $(document).ready(function() {
         } 
         
         if (user.user_foto) {
-            $('#profile-avatar').attr('src', '/storage/userFoto/' + user.user_foto).show();
+            $('#profile-avatar').attr('src', `/storage/userFoto/${user.user_foto}` ).show();
             $('#default-avatar').hide();
         } else {
             $('#profile-avatar').hide();
@@ -99,10 +100,6 @@ $(document).ready(function() {
     }
     
     function initAvatarUpload() {
-        $('#avatar-container').on('click', function() {
-            $('#avatar-upload').click();
-        });
-        
         $('#avatar-upload').on('change', function(e) {
             if (e.target.files && e.target.files[0]) {
                 uploadAvatar(e.target.files[0]);
@@ -117,7 +114,7 @@ $(document).ready(function() {
         }
         
         const formData = new FormData();
-        formData.append('avatar', file);
+        formData.append('user_foto', file); 
         
         $.ajax({
             url: '/userFoto',
@@ -126,14 +123,15 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`, 
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             beforeSend: function() {
                 $('#avatar-container').css('opacity', '0.5');
             },
             success: function(response) {
-                if (response.success && response.avatar_url) {
-                    $('#profile-avatar').attr('src', response.avatar_url).show();
+                if (response) {
+                    $('#profile-avatar').attr('src', response).show();
                     $('#default-avatar').hide();
                 }
             },
@@ -160,7 +158,6 @@ $(document).ready(function() {
 
     function loadUserAnnouncements(userId) {
         if (!userId) {
-            console.error('ID пользователя не определен');
             $('#loading-announcements').hide();
             $('#no-announcements').show();
             return;

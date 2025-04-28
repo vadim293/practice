@@ -61,6 +61,11 @@ footer {
     display: none;
 }
 
+/* announcement */
+.userFoto {
+    width: 50px;
+    height: 50px;
+}
 
 /* profile */
 .user-foto {

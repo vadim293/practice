@@ -66,6 +66,8 @@ $(document).ready(function() {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
+                console.log(data);
+                
                 if (data) {
                     renderAnnouncement(data);
                     $('#loading-announcement').hide();
@@ -94,6 +96,62 @@ $(document).ready(function() {
         $('#property-rooms').text(getRoomText(announcement.rooms));
         $('#property-date').text(new Date(announcement.created_at).toLocaleDateString());
         $('#property-price').text(`${formatPrice(announcement.price)} ₽/мес`);
+        
+        const showPhoneBtn = $('#show-phone-btn');
+        const phonePlaceholder = $('#phone-placeholder');
+        const ownerPhone = $('#owner-phone');
+        const phoneNotAuth = $('#phone-not-auth');
+        ownerPhone.hide();
+        const isAuthenticated = !!localStorage.getItem('authToken');   
+
+        if (announcement.user) {
+            $('#owner-name').text(announcement.user.first_name + ' ' + announcement.user.last_name + ' ' + announcement.user.patronymic || 'Не указано');
+            $('#owner-phone').text(announcement.user.phone || 'Не указано').attr('href', `tel:${announcement.user.phone || ''}`);
+            
+            const avatarImg = $('#user-avatar');
+            const defaultAvatar = $('#default-avatar');
+            
+            if (announcement.user.user_foto) {
+                // Если есть аватар в базе - показываем изображение
+                avatarImg.attr('src', `/storage/userFoto/${announcement.user.user_foto}`);
+                avatarImg.show();
+                defaultAvatar.hide();
+            } else {
+                // Если аватара нет - показываем иконку по умолчанию
+                avatarImg.hide();
+                defaultAvatar.show();
+            }
+
+            if (announcement.user && announcement.user.phone) {
+                ownerPhone.text(announcement.user.phone).attr('href', `tel:${announcement.user.phone}`);
+                
+                if (isAuthenticated) {
+                    showPhoneBtn.on('click', function() {
+                        if (ownerPhone.is(':visible')) {
+                            // Если телефон уже показан, скрываем его
+                            ownerPhone.hide();
+                            phonePlaceholder.show();
+                            showPhoneBtn.text('Написать сообщение');
+                        } else {
+                            // Показываем телефон
+                            ownerPhone.show();
+                            phonePlaceholder.hide();
+                            showPhoneBtn.text('Скрыть телефон');
+                        }
+                    });
+                } else {
+                    // Для неавторизованных пользователей
+                    showPhoneBtn.on('click', function() {
+                        phoneNotAuth.show();
+                        setTimeout(() => phoneNotAuth.hide(), 3000);
+                    });
+                }
+            } else {
+                // Если телефона нет в базе
+                phonePlaceholder.text('Телефон не указан');
+                showPhoneBtn.prop('disabled', true);
+            }
+        }
 
         // Заполняем галерею фотографий
         const carouselInner = $('#carousel-inner');

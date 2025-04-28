@@ -155,11 +155,11 @@ class AnnouncementService{
         });
     }
     public function getAnnouncement($id) {
-        return Announcement::with('announcementPhoto')->find($id);
+        return Announcement::with('announcementPhoto','user')->find($id);
     }
 
     public function getUserAnnouncements($userId) {
-        return Announcement::with('announcementPhoto')
+        return Announcement::with('announcementPhoto','user')
             ->where('user_id', $userId) 
             ->get()
             ->map(function($item) {
@@ -214,37 +214,39 @@ class AnnouncementService{
 
     }
 
-
-    public function userFoto($user, $userFotoFile)    {
-
-        $this->deleteUserFoto($user);
-
+    public function userFoto($user, $userFotoFile)
+    {   
         $extension = $userFotoFile->getClientOriginalExtension();
         $fileName = uniqid() . '.' . $extension;
-        
+    
         // Сохраняем файл
-        $userFotoFile->storeAs(
-            '', // корень диска уже указан в конфиге
-            $fileName,
-            'userFoto' // используем наш диск
-        );
-        
-        // Обновляем запись в базе данных
+        $userFotoFile->storeAs('', $fileName, 'userFoto');
+    
+        // Удаляем старый файл если есть
+        $this->deleteUserFoto($user);
+    
+        // Обновляем запись пользователя
         $user->user_foto = $fileName;
-        $user->save();
-        
-        return Storage::disk('userFoto')->url($fileName);
+        $user->save(); 
     }
     
     public function deleteUserFoto($user)
     {
-        if ($user->user_foto) {
-            Storage::disk('userFoto')->delete($user->user_foto);
-            $user->user_foto = null;
-            $user->save();
-            return true;
+        if (empty($user->user_foto)) {
+            return false;
         }
-        
-        return false;
+    
+        $oldFile = $user->user_foto;
+    
+        // Удаляем файл
+        if (Storage::disk('userFoto')->exists($oldFile)) {
+            Storage::disk('userFoto')->delete($oldFile);
+        }
+    
+        // Очищаем поле в БД
+        $user->user_foto = null;
+        $user->save();
+    
+        return true;
     }
 }
