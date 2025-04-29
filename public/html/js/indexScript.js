@@ -63,7 +63,7 @@ $(document).ready(function() {
             // Добавляем каждое объявление в контейнер
             recentAnnouncements.forEach(function(announcement) {
                 const cardHtml = `
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4 my-3">
                     <div class="card property-card h-100">
                         ${announcement.announcement_photo && announcement.announcement_photo.length > 0        
                             ?   `<div class="property-img-container"> 
