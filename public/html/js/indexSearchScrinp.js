@@ -92,24 +92,35 @@ $(document).ready(function() {
         }
     }
 
+    // Добавьте эти переменные в начало скрипта
+    let currentPage = 1;
+    let itemsPerPage = window.innerWidth < 768 ? 10 : 20; // 10 для мобильных, 20 для десктопа
+    let totalAnnouncements = 0;
+    let allAnnouncements = [];
+
+    // Обновите функцию loadSearchResults
     function loadSearchResults(params) {
         $('#loading-announcements').show();
         $('#announcements-container').hide();
         $('#noResults').hide();
+        $('#pagination-container').hide();
         
-        // Отправляем запрос к API
         $.ajax({
             url: '/search',
             method: 'GET',
             dataType: 'json',
             data: params,
             success: function(data) {
-                $('#resultsCount').text(data.length);
+                allAnnouncements = data;
+                totalAnnouncements = data.length;
+                $('#resultsCount').text(totalAnnouncements);
                 
-                if (data.length === 0) {
+                if (totalAnnouncements === 0) {
                     $('#noResults').show();
                 } else {
-                    renderAnnouncements(data);
+                    updatePagination();
+                    renderAnnouncements();
+                    $('#pagination-container').show();
                 }
                 
                 $('#loading-announcements').hide();
@@ -122,11 +133,16 @@ $(document).ready(function() {
             }
         });
     }
-    
-    function renderAnnouncements(announcements) {
+
+    // Обновите функцию renderAnnouncements
+    function renderAnnouncements() {
         $('#announcements-container').empty();
         
-        announcements.forEach(function(announcement) {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalAnnouncements);
+        const paginatedAnnouncements = allAnnouncements.slice(startIndex, endIndex);
+        
+        paginatedAnnouncements.forEach(function(announcement) {
             const cardHtml = `
             <div class="col-md-6 col-lg-3 my-1">
                 <div class="card property-card h-100">
@@ -157,6 +173,103 @@ $(document).ready(function() {
         
         $('#announcements-container').show();
     }
+
+    // Добавьте новые функции для пагинации
+    function updatePagination() {
+        const totalPages = Math.ceil(totalAnnouncements / itemsPerPage);
+        const $pagination = $('#pagination-container ul');
+        
+        // Очищаем все страницы кроме текущей, предыдущей и следующей
+        $pagination.find('li.page-item:not(.active):not(#prev-page):not(#next-page)').remove();
+        
+        // Обновляем предыдущую страницу
+        $('#prev-page').toggleClass('disabled', currentPage === 1);
+        
+        // Обновляем следующую страницу
+        $('#next-page').toggleClass('disabled', currentPage === totalPages);
+        
+        // Добавляем номера страниц
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        // Вставляем страницы перед активной
+        if (startPage > 1) {
+            $('<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>')
+                .insertAfter('#prev-page');
+            if (startPage > 2) {
+                $('<li class="page-item disabled"><span class="page-link">...</span></li>')
+                    .insertAfter('#prev-page').next();
+            }
+        }
+        
+        // Вставляем страницы вокруг активной
+        for (let i = startPage; i <= endPage; i++) {
+            if (i !== currentPage) {
+                $(`<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`)
+                    .insertBefore('#next-page');
+            }
+        }
+        
+        // Вставляем страницы после активной
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                $('<li class="page-item disabled"><span class="page-link">...</span></li>')
+                    .insertBefore('#next-page');
+            }
+            $(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`)
+                .insertBefore('#next-page');
+        }
+        
+        // Обновляем активную страницу
+        $pagination.find('li.active').removeClass('active');
+        $(`li.page-item a[data-page="${currentPage}"]`).parent().addClass('active');
+    }
+
+    // Обработчики событий для пагинации
+    $(document).on('click', '#prev-page a', function(e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage--;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, 0);
+        }
+    });
+
+    $(document).on('click', '#next-page a', function(e) {
+        e.preventDefault();
+        const totalPages = Math.ceil(totalAnnouncements / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, 0);
+        }
+    });
+
+    $(document).on('click', 'li.page-item a[data-page]', function(e) {
+        e.preventDefault();
+        const page = parseInt($(this).data('page'));
+        if (page !== currentPage) {
+            currentPage = page;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, 0);
+        }
+    });
+
+    // Обработчик изменения размера окна для обновления itemsPerPage
+    $(window).on('resize', function() {
+        const newItemsPerPage = window.innerWidth < 768 ? 10 : 20;
+        if (newItemsPerPage !== itemsPerPage) {
+            itemsPerPage = newItemsPerPage;
+            currentPage = 1;
+            if (allAnnouncements.length > 0) {
+                renderAnnouncements();
+                updatePagination();
+            }
+        }
+    });
     
     function getRoomWord(count) {
         if (count % 100 >= 11 && count % 100 <= 14) {

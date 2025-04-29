@@ -50,8 +50,8 @@ class AnnouncementController extends Controller
         return $this->announcementService->userFoto($request->user(),$request->file('user_foto'));
     }
 
-    public function deleteUserFoto(Request $request) {
-        return $this->announcementService->deleteUserFoto($request->user());
+    public function deleteUserFoto($id) {
+        return $this->announcementService->deleteUserFoto($id);
     }
 
 }

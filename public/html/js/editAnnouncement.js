@@ -1,12 +1,10 @@
 $(document).ready(function() {
-    // Получаем ID объявления из URL
-    // const $token = localStorage.getItem('authToken');
-    // console.log($token);
+    const token = localStorage.getItem('authToken');
     
-    // if (!$token) {
-    //   window.location.href = '/login';
-    //   return;
-    // }
+    if (!token) {
+        window.location.href = 'Login.html';
+        return;
+    }
 
     // Конфигурация
     const config = {
@@ -99,7 +97,7 @@ $(document).ready(function() {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 }
             })
             .then(async response => {
@@ -353,7 +351,7 @@ $(document).ready(function() {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                // Не устанавливайте Content-Type - браузер сам установит с boundary
+                'Authorization': `Bearer ${token}`
             },
             body: formData
         })

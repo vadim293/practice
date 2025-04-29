@@ -1,6 +1,5 @@
 $(document).ready(function() {
     const token = localStorage.getItem('authToken');
-    console.log(token);
     
     if (!token) {
         window.location.href = 'Login.html';
@@ -156,7 +155,6 @@ $(document).ready(function() {
             
     // Выбор подсказки
     function selectSuggestion(suggestion) {
-        console.log('Выбран адрес:', suggestion);
         
         $address.val(suggestion.address)
             .data('selected', true)
@@ -172,7 +170,6 @@ $(document).ready(function() {
             $latitude.val(lat);
             $longitude.val(lon);
             
-            console.log('Установлены координаты:', {lat, lon});
         } else {
             console.error('Невалидные координаты:', suggestion.coordinates);
             $addressError.text('Не удалось определить координаты для этого адреса. Пожалуйста, выберите другой.').show();
@@ -195,6 +192,12 @@ $(document).ready(function() {
         if (!$title.val().trim()) {
             $title.addClass('is-invalid');
             $('#title-error').text('Название объявления обязательно').show();
+            isValid = false;
+        }
+
+        if (!$description.val().trim()) {
+            $description.addClass('is-invalid');
+            $('#description-error').text('Описание объявления обязательно').show();
             isValid = false;
         }
 
@@ -228,11 +231,6 @@ $(document).ready(function() {
             isValid = false;
         }
 
-        // Проверка фотографий (необязательно)
-        if ($photoInput[0].files.length === 0) {
-            console.log('Фотографии не загружены, но это не обязательно');
-        }
-
         return isValid;
     }
 
@@ -242,8 +240,6 @@ $(document).ready(function() {
         $photoPreview.empty();
         
         if (files.length > 0) {
-            console.log('Выбрано фотографий:', files.length);
-            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const reader = new FileReader();

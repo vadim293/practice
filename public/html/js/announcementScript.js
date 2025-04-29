@@ -90,7 +90,7 @@ $(document).ready(function() {
         // Заполняем основную информацию
         $('#announcement-title').text(announcement.title);
         $('#announcement-description').text(announcement.description || 'Описание отсутствует');
-        $('#property-type').text(announcement.type === 'Квартира' ? 'Квартира' : 'Дом');
+        $('#property-type').text(announcement.type === 'apartment' ? 'Квартира' : 'Дом');
         $('#property-address').text(announcement.address);
         $('#property-area').text(announcement.area);
         $('#property-rooms').text(getRoomText(announcement.rooms));
@@ -105,7 +105,7 @@ $(document).ready(function() {
         const isAuthenticated = !!localStorage.getItem('authToken');   
 
         if (announcement.user) {
-            $('#owner-name').text(announcement.user.first_name + ' ' + announcement.user.last_name + ' ' + announcement.user.patronymic || 'Не указано');
+            $('#owner-name').text(announcement.user.first_name || 'Не указано');
             $('#owner-phone').text(announcement.user.phone || 'Не указано').attr('href', `tel:${announcement.user.phone || ''}`);
             
             const avatarImg = $('#user-avatar');

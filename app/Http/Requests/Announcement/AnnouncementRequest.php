@@ -32,7 +32,7 @@ class AnnouncementRequest extends FormRequest
             'rooms' => 'required|integer|min:1',
             'area' => 'required|integer|min:1',
             'file_name' => 'sometimes|array',
-            'file_name.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'file_name.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
         ];
     }
 

@@ -214,20 +214,16 @@ class AnnouncementService{
 
     }
 
-    public function userFoto($user, $userFotoFile)
-    {   
-        $extension = $userFotoFile->getClientOriginalExtension();
+    public function userFoto($user, $file)
+    {
+        $extension = $file->getClientOriginalExtension();
         $fileName = uniqid() . '.' . $extension;
-    
-        // Сохраняем файл
-        $userFotoFile->storeAs('', $fileName, 'userFoto');
-    
-        // Удаляем старый файл если есть
+            
+        $path = $file->storeAs('', $fileName, 'userFoto');
         $this->deleteUserFoto($user);
-    
-        // Обновляем запись пользователя
-        $user->user_foto = $fileName;
-        $user->save(); 
+
+        $user->user_foto = $path;
+        $user->save();
     }
     
     public function deleteUserFoto($user)

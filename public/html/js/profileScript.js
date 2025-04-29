@@ -1,6 +1,6 @@
 function checkAuthStatus() {
     const token = localStorage.getItem('authToken');
-    ;
+    
     if (token) {
         $('#auth-buttons').hide();
         $('#user-menu').show();
@@ -61,10 +61,11 @@ $(document).ready(function() {
             headers: {
                 'Authorization': `Bearer ${token}`
             },
-            success: function(user) {            
+            success: function(user) {   
+                         
                 currentUserId = user.id; 
                 updateUserProfile(user);
-                initAvatarUpload();
+                initAvatarUpload(currentUserId);
                 loadUserAnnouncements(currentUserId); 
             },
             error: function(xhr) {
@@ -76,74 +77,102 @@ $(document).ready(function() {
     }
     
     function updateUserProfile(user) {
-  
         let fullName = '';
         if (user.last_name) fullName += user.last_name;
         if (user.first_name) fullName += ' ' + user.first_name;
         if (user.patronymic) fullName += ' ' + user.patronymic;
-        
+    
         if (!fullName.trim()) fullName = 'Пользователь';
-        
+    
         $('#profile-name').text(fullName);
-        
+    
         if (user.phone) {
             $('#profile-phone').text(formatPhoneNumber(user.phone));
-        } 
-        
+        }
+    
+        // Проверяем наличие аватара
         if (user.user_foto) {
-            $('#profile-avatar').attr('src', `/storage/userFoto/${user.user_foto}` ).show();
+            $('#profile-avatar').attr('src', `/storage/userFoto/${user.user_foto}`).show();
             $('#default-avatar').hide();
+            $('#delete-avatar-btn').show(); // Показываем кнопку удаления
         } else {
             $('#profile-avatar').hide();
             $('#default-avatar').show();
+            $('#delete-avatar-btn').hide(); // Скрываем кнопку удаления
         }
     }
     
-    function initAvatarUpload() {
-        $('#avatar-upload').on('change', function(e) {
+    function initAvatarUpload(currentUserId) {
+        $('#user_foto').on('change', function(e) {
+            
             if (e.target.files && e.target.files[0]) {
-                uploadAvatar(e.target.files[0]);
+                const file = e.target.files[0];  
+                uploadAvatar(currentUserId, file); 
             }
         });
     }
     
-    function uploadAvatar(file) {
-        if (!file.type.match('image.*')) {
-            alert('Пожалуйста, выберите изображение');
+    function uploadAvatar(currentUserId,file) {
+        if (!file) {
+            alert('Файл не выбран');
             return;
         }
-        
+    
         const formData = new FormData();
-        formData.append('user_foto', file); 
-        
+        formData.append('id', currentUserId);
+        formData.append('user_foto', file);
+        formData.append('_method', 'PATCH'); 
+    
         $.ajax({
             url: '/userFoto',
-            method: 'PATCH',
+            method: 'POST',
             data: formData,
-            processData: false,
-            contentType: false,
+            processData: false, // Важно для FormData!
+            contentType: false, // Важно для FormData!
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`, 
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            beforeSend: function() {
-                $('#avatar-container').css('opacity', '0.5');
             },
             success: function(response) {
                 if (response) {
-                    $('#profile-avatar').attr('src', response).show();
-                    $('#default-avatar').hide();
+                    // Обновляем аватар
+                    $('#profile-avatar').attr('src', `/storage/userFoto/${response}`).show();
+                    $('#default-avatar').hide(); 
                 }
+                location.reload(true);
             },
             error: function(xhr) {
                 alert('Ошибка при загрузке аватара: ' + (xhr.responseJSON?.message || 'Неизвестная ошибка'));
-                console.error(xhr.responseText);
+            }
+            
+        });
+    }
+    
+    function deleteAvatar(userId) {
+        if (!confirm('Вы уверены, что хотите удалить аватар?')) {
+            return;
+        }
+    
+        $.ajax({
+            url: `/userFoto/${userId}`,
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            complete: function() {
-                $('#avatar-container').css('opacity', '1');
+            success: function() {
+                // Успешно удалено - обновляем отображение
+                $('#profile-avatar').hide();
+                $('#default-avatar').show();
+                $('#delete-avatar-btn').hide();
+                $('#profile-avatar').attr('src', ''); // Очищаем src
+            },
+            error: function(xhr) {
+                alert('Ошибка при удалении аватара: ' + (xhr.responseJSON?.message || 'Неизвестная ошибка'));
             }
         });
     }
+
     
     function formatPhoneNumber(phone) {
         if (!phone) return '';
@@ -156,6 +185,12 @@ $(document).ready(function() {
         return phone;
     }
 
+    let currentPage = 1;
+    let itemsPerPage = window.innerWidth < 768 ? 10 : 20; // 10 для мобильных, 20 для десктопа
+    let totalAnnouncements = 0;
+    let allAnnouncements = [];
+    
+    // Обновите функцию loadUserAnnouncements
     function loadUserAnnouncements(userId) {
         if (!userId) {
             $('#loading-announcements').hide();
@@ -166,16 +201,20 @@ $(document).ready(function() {
         $('#loading-announcements').show();
         $('#announcements-container').hide();
         $('#no-announcements').hide();
+        $('#pagination-container').hide();
         
         $.ajax({
             url: `/user/Announcement/${userId}`,
             method: 'GET',
             success: function(announcements) {
+                allAnnouncements = announcements || [];
+                totalAnnouncements = allAnnouncements.length;
                 $('#loading-announcements').hide();
                 
-                if (announcements && announcements.length > 0) {
-                    renderAnnouncements(announcements);
-                    $('#announcements-container').show();
+                if (totalAnnouncements > 0) {
+                    updatePagination();
+                    renderAnnouncements();
+                    $('#pagination-container').show();
                 } else {
                     $('#no-announcements').show();
                 }
@@ -187,12 +226,17 @@ $(document).ready(function() {
             }
         });
     }
-
-    function renderAnnouncements(announcements) {
+    
+    // Обновите функцию renderAnnouncements
+    function renderAnnouncements() {
         const container = $('#announcements-container');
         container.empty();
         
-        announcements.forEach(announcement => {     
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalAnnouncements);
+        const paginatedAnnouncements = allAnnouncements.slice(startIndex, endIndex);
+        
+        paginatedAnnouncements.forEach(announcement => {     
             const cardHtml = `
                 <div class="col-md-6 col-lg-4 col-xl-3">
                     <div class="card h-100">
@@ -229,7 +273,138 @@ $(document).ready(function() {
             `;
             container.append(cardHtml);
         });
+        
+        container.show();
     }
+    
+    // Добавьте новые функции для пагинации
+    function updatePagination() {
+        const totalPages = Math.ceil(totalAnnouncements / itemsPerPage);
+        const $pagination = $('#pagination-container ul');
+        
+        // Очищаем все страницы кроме текущей, предыдущей и следующей
+        $pagination.find('li.page-item:not(.active):not(#prev-page):not(#next-page)').remove();
+        
+        // Обновляем предыдущую страницу
+        $('#prev-page').toggleClass('disabled', currentPage === 1);
+        
+        // Обновляем следующую страницу
+        $('#next-page').toggleClass('disabled', currentPage === totalPages);
+        
+        // Добавляем номера страниц
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        // Вставляем страницы перед активной
+        if (startPage > 1) {
+            $('<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>')
+                .insertAfter('#prev-page');
+            if (startPage > 2) {
+                $('<li class="page-item disabled"><span class="page-link">...</span></li>')
+                    .insertAfter('#prev-page').next();
+            }
+        }
+        
+        // Вставляем страницы вокруг активной
+        for (let i = startPage; i <= endPage; i++) {
+            if (i !== currentPage) {
+                $(`<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`)
+                    .insertBefore('#next-page');
+            }
+        }
+        
+        // Вставляем страницы после активной
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                $('<li class="page-item disabled"><span class="page-link">...</span></li>')
+                    .insertBefore('#next-page');
+            }
+            $(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`)
+                .insertBefore('#next-page');
+        }
+        
+        // Обновляем активную страницу
+        $pagination.find('li.active').removeClass('active');
+        $(`li.page-item a[data-page="${currentPage}"]`).parent().addClass('active');
+    }
+    
+    // Обработчики событий для пагинации
+    $(document).on('click', '#prev-page a', function(e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage--;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, $('#announcements-container').offset().top - 20);
+        }
+    });
+    
+    $(document).on('click', '#next-page a', function(e) {
+        e.preventDefault();
+        const totalPages = Math.ceil(totalAnnouncements / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, $('#announcements-container').offset().top - 20);
+        }
+    });
+    
+    $(document).on('click', 'li.page-item a[data-page]', function(e) {
+        e.preventDefault();
+        const page = parseInt($(this).data('page'));
+        if (page !== currentPage) {
+            currentPage = page;
+            renderAnnouncements();
+            updatePagination();
+            window.scrollTo(0, $('#announcements-container').offset().top - 20);
+        }
+    });
+    
+    // Обработчик изменения размера окна для обновления itemsPerPage
+    $(window).on('resize', function() {
+        const newItemsPerPage = window.innerWidth < 768 ? 10 : 20;
+        if (newItemsPerPage !== itemsPerPage) {
+            itemsPerPage = newItemsPerPage;
+            currentPage = 1;
+            if (allAnnouncements.length > 0) {
+                renderAnnouncements();
+                updatePagination();
+            }
+        }
+    });
+    
+    // Обновите обработчик удаления объявлений, чтобы он перезагружал пагинацию
+    $(document).on('click', '.delete-announcement', function() {
+        const id = $(this).data('id');
+        const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        
+        $('#confirm-delete-btn').off('click').on('click', function() {
+            const $btn = $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Удаление...');
+            
+            $.ajax({
+                url: `/deleteAnnouncement/${id}`,
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function() {
+                    modal.hide();
+                    // Перезагружаем объявления с учетом пагинации
+                    loadUserAnnouncements(currentUserId);
+                },
+                error: function(xhr) {
+                    alert(xhr.responseJSON?.message || 'Ошибка при удалении объявления');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).text('Удалить');
+                }
+            });
+        });
+        
+        modal.show();
+    });
 
     function getRoomWord(count) {
         if (!count) return 'комнат';
@@ -246,34 +421,6 @@ $(document).ready(function() {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
 
-    $(document).on('click', '.delete-announcement', function() {
-        const id = $(this).data('id');
-        const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-        
-        $('#confirm-delete-btn').off('click').on('click', function() {
-            const $btn = $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Удаление...');
-            
-            $.ajax({
-                url: `/deleteAnnouncement/${id}`,
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function() {
-                    modal.hide();
-                    loadUserAnnouncements();
-                },
-                error: function(xhr) {
-                    alert(xhr.responseJSON?.message || 'Ошибка при удалении объявления');
-                },
-                complete: function() {
-                    $btn.prop('disabled', false).text('Удалить');
-                }
-            });
-        });
-        
-        modal.show();
-    });
 
     // Инициализация
     loadUserData();

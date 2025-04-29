@@ -167,7 +167,6 @@ function initMap() {
                 ${announcement.announcement_photo && announcement.announcement_photo.length > 0 
                     ? `<img src="/storage/announcement/${announcement.announcement_photo[0].file_name}" class="announcement-image">` 
                     : '<div class="no-photo">Нет фотографии</div>'}
-                ${announcement.description ? `<p>${announcement.description}</p>` : ''}
                 <a href="announcement.html?id=${announcement.id}" class="balloon-link">Подробнее</a>
             `;
             
