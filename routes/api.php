@@ -19,7 +19,6 @@ Route::get('/geocoder', [GeocodeController::class, 'geocode']);
 
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login'])->name('login');
-Route::post('/logout', [LoginController::class, 'logout']);
 
 
 Route::get('/Announcement', [AnnouncementController::class, 'getAll']);
@@ -32,6 +31,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    Route::post('/logout', [LoginController::class, 'logout']);
 
     Route::post('/adderAnnouncement', [AnnouncementController::class, 'create']);
     Route::patch('/updateAnnouncement/{id}', [AnnouncementController::class, 'update']);
